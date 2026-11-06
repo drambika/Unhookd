@@ -1,0 +1,113 @@
+/* Self-hosted copies of the Google Fonts used by Unhookd (Nunito 500-800, Baloo 2 600-800), latin + latin-ext. SIL Open Font License 1.1. */
+/* nunito-latin-ext-500-normal */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(./nunito/nunito-latin-ext-500-normal.woff2) format('woff2');
+}
+/* nunito-latin-500-normal */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url(./nunito/nunito-latin-500-normal.woff2) format('woff2');
+}
+/* nunito-latin-ext-600-normal */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(./nunito/nunito-latin-ext-600-normal.woff2) format('woff2');
+}
+/* nunito-latin-600-normal */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(./nunito/nunito-latin-600-normal.woff2) format('woff2');
+}
+/* nunito-latin-ext-700-normal */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./nunito/nunito-latin-ext-700-normal.woff2) format('woff2');
+}
+/* nunito-latin-700-normal */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./nunito/nunito-latin-700-normal.woff2) format('woff2');
+}
+/* nunito-latin-ext-800-normal */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url(./nunito/nunito-latin-ext-800-normal.woff2) format('woff2');
+}
+/* nunito-latin-800-normal */
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url(./nunito/nunito-latin-800-normal.woff2) format('woff2');
+}
+/* baloo-2-latin-ext-600-normal */
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(./baloo-2/baloo-2-latin-ext-600-normal.woff2) format('woff2');
+}
+/* baloo-2-latin-600-normal */
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url(./baloo-2/baloo-2-latin-600-normal.woff2) format('woff2');
+}
+/* baloo-2-latin-ext-700-normal */
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./baloo-2/baloo-2-latin-ext-700-normal.woff2) format('woff2');
+}
+/* baloo-2-latin-700-normal */
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url(./baloo-2/baloo-2-latin-700-normal.woff2) format('woff2');
+}
+/* baloo-2-latin-ext-800-normal */
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url(./baloo-2/baloo-2-latin-ext-800-normal.woff2) format('woff2');
+}
+/* baloo-2-latin-800-normal */
+@font-face {
+  font-family: 'Baloo 2';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src: url(./baloo-2/baloo-2-latin-800-normal.woff2) format('woff2');
+}

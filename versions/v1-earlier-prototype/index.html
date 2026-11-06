@@ -1,0 +1,1547 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Unhookd</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@500;600;700;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<style>
+/* Layout: one phone-width column on white; buddy card, quest pills, trackers; floating pill tab bar */
+:root{
+  --bg:#FFFFFF; --card:#F6F4FB; --chip:#ECE9F3; --line:#E3DFEC;
+  --ink:#1A1530; --ink2:#6B6680; --candy-ink:#1A1530;
+  --pri:#6C4CF5; --pri-ink:#FFFFFF; --pri-soft:#ECE6FF; --pot:#E6DEFF;
+  --sun:#FFD43B; --mint:#5EE0B5; --gum:#FF7EB6; --sky:#6EC6FF; --lime:#B6E84C; --lilac:#B9A4FF;
+  --leaf:#3DBB6B; --danger:#E5484D;
+  --shadow:0 8px 24px rgba(40,25,90,.08);
+  --display:"Baloo 2","Nunito",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+/* Day mode is the default; Night only when the person switches it in the app */
+:root[data-mode="dark"]{
+  --bg:#121117; --card:#1E1C26; --chip:#2A2734; --line:#34313F; --ink:#F4F2FA; --ink2:#A7A2B8;
+  --pri-soft:#2C2550; --pot:#D9CFFF; --shadow:0 8px 24px rgba(0,0,0,.4); color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.app{max-width:460px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 130px;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--display);font-weight:800;margin:0;line-height:1.15;text-wrap:balance}
+h1{font-size:32px;letter-spacing:-.01em} h2{font-size:21px} h3{font-size:17px}
+p{margin:0}
+.muted{color:var(--ink2)} .small{font-size:13px} .num{font-variant-numeric:tabular-nums}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.card{background:var(--card);border-radius:26px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between} .grow{flex:1;min-width:0}
+button,.btn{font:inherit;font-weight:800;border:0;border-radius:999px;padding:11px 18px;cursor:pointer;background:var(--chip);color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;transition:transform .15s cubic-bezier(.3,1.6,.5,1)}
+button:active,.btn:active{transform:scale(.94)}
+button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+button[disabled]{opacity:.45;cursor:not-allowed}
+.primary{background:var(--pri);color:var(--pri-ink)}
+.sun{background:var(--sun);color:var(--candy-ink)}
+.mintb{background:var(--mint);color:var(--candy-ink)}
+.danger{background:var(--danger);color:#fff}
+.ghost{background:transparent;color:var(--ink2);padding-inline:8px}
+.wide{width:100%}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:16px;padding:11px 12px;width:100%;min-height:46px}
+label{display:flex;flex-direction:column;gap:6px;font-weight:800;font-size:13px;color:var(--ink2)}
+.form{display:flex;flex-direction:column;gap:12px}
+.seg{display:flex;background:var(--chip);border-radius:999px;padding:4px;gap:4px}
+.seg button{flex:1;background:transparent;min-height:40px;padding:8px 10px}
+.seg button.on{background:var(--pri);color:var(--pri-ink)}
+.note{background:var(--chip);border-radius:16px;padding:10px 12px;font-size:13px}
+.hr{height:1px;background:var(--line)}
+.copyable{font-variant-numeric:tabular-nums;user-select:all;font-weight:800}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.title{display:flex;align-items:center;gap:8px;min-width:0}
+.title h1 span{background:linear-gradient(transparent 62%,var(--sun) 62%);padding:0 3px}
+.chipstat{display:inline-flex;align-items:center;gap:6px;background:var(--card);border-radius:999px;padding:6px 12px;font-weight:800;font-size:14px}
+.demo-tag{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--sun);color:var(--candy-ink);padding:3px 8px;border-radius:999px}
+
+.buddy{background:var(--pri-soft);border-radius:28px;padding:16px;display:grid;grid-template-columns:104px 1fr;gap:12px;align-items:center}
+.buddy svg{width:104px;height:auto;display:block}
+.buddy .say{background:var(--bg);border-radius:18px 18px 18px 6px;padding:10px 12px;font-weight:800;font-size:15px}
+.bounce{animation:bounce .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bounce{0%{transform:scale(1)}30%{transform:scale(1.15,.9)}60%{transform:scale(.95,1.08)}100%{transform:scale(1)}}
+.xpbar{height:14px;border-radius:999px;background:var(--bg);overflow:hidden}
+.xpbar i{display:block;height:100%;border-radius:999px;background:repeating-linear-gradient(-45deg,var(--pri) 0 10px,color-mix(in srgb,var(--pri) 78%,#fff) 10px 20px);background-size:28px 28px;animation:stripes 1.2s linear infinite;transition:width .6s cubic-bezier(.3,1.4,.5,1)}
+@keyframes stripes{to{background-position:28px 0}}
+.pot{fill:var(--pot)} .rim{fill:var(--pri)} .face{fill:var(--candy-ink)} .facel{stroke:var(--candy-ink);stroke-width:3;fill:none;stroke-linecap:round}
+.cheek{fill:var(--gum);opacity:.7} .stem{stroke:var(--leaf);stroke-width:4;fill:none;stroke-linecap:round} .leaf{fill:var(--leaf)}
+
+.qhead{display:flex;justify-content:space-between;align-items:baseline}
+.quests{display:flex;flex-direction:column;gap:10px}
+.quest{width:100%;justify-content:space-between;text-align:left;border-radius:22px;padding:14px 14px 14px 18px;min-height:64px;background:var(--chip);font-weight:800;gap:12px}
+.quest .qt{display:flex;flex-direction:column;min-width:0}
+.quest .qt small{font-weight:700;font-size:12.5px;color:var(--ink2)}
+.quest .box{width:30px;height:30px;border-radius:10px;border:3px solid var(--line);background:var(--bg);flex:none;display:grid;place-items:center}
+.quest.done{color:var(--candy-ink)}
+.quest.done .qt small{color:var(--candy-ink);opacity:.7}
+.quest.done .box{border-color:var(--candy-ink);background:transparent}
+.quest.done .box::after{content:"";width:9px;height:15px;border:solid var(--candy-ink);border-width:0 3.5px 3.5px 0;transform:translateY(-2px) rotate(45deg)}
+.quest.c0.done{background:var(--sun)} .quest.c1.done{background:var(--mint)} .quest.c2.done{background:var(--gum)}
+.quest.c3.done{background:var(--sky)} .quest.c4.done{background:var(--lime)} .quest.c5.done{background:var(--lilac)}
+.qwrap{position:relative}
+.qx{position:absolute;right:52px;top:50%;transform:translateY(-50%);min-height:32px;padding:4px 10px;font-size:12px;background:transparent;color:var(--ink2)}
+.addq{display:flex;gap:8px}
+.addq input{border-style:dashed}
+.alldone{background:var(--sun);color:var(--candy-ink);border-radius:22px;padding:14px 16px;font-weight:800;text-align:center}
+
+.tracker .big{font-family:var(--display);font-size:44px;font-weight:800;line-height:1}
+.track{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.ms{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--ink2)}
+.ms span{width:24px;height:24px;border-radius:50%;background:var(--chip);border:3px solid var(--bg)}
+.ms.on span{background:var(--mint)} .ms.nextm span{background:var(--sun)}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:46px;padding:0;font-size:22px}
+.stepper output{min-width:50px;text-align:center;font-family:var(--display);font-size:28px;font-weight:800}
+.tag{font-size:12px;font-weight:800;border-radius:999px;padding:3px 10px;background:var(--mint);color:var(--candy-ink)}
+.tag.reduce{background:var(--sky)}
+.slipcard{background:var(--lilac);color:var(--candy-ink)}
+.slipcard .muted{color:var(--candy-ink);opacity:.75}
+
+.lvl{background:var(--pri);color:var(--pri-ink);border-radius:28px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.lvl .xpbar{background:rgba(255,255,255,.25)}
+.lvl .xpbar i{background:repeating-linear-gradient(-45deg,var(--sun) 0 10px,#FFE680 10px 20px);background-size:28px 28px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--card);border-radius:20px;padding:12px 6px;text-align:center}
+.stat b{display:block;font-family:var(--display);font-size:26px;line-height:1.1}
+.shop{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.item{background:var(--card);border-radius:22px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;min-width:0}
+.item svg{width:72px;height:auto}
+.swatch{width:56px;height:56px;border-radius:18px}
+.stickers{display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:10px}
+.sticker{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:12px;font-weight:800}
+.sticker .s{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:17px;color:var(--candy-ink);border:4px solid var(--bg);box-shadow:var(--shadow);transform:rotate(-6deg)}
+.sticker.off{color:var(--ink2)} .sticker.off .s{background:var(--chip)!important;color:var(--ink2);box-shadow:none;transform:none}
+
+.breath{display:grid;place-items:center;padding:16px 0}
+.circle{width:180px;height:180px;border-radius:50%;background:var(--mint);display:grid;place-items:center;transform:scale(.6);transition:transform 4s ease-in-out;box-shadow:0 0 0 18px color-mix(in srgb,var(--mint) 30%,transparent)}
+.circle b{font-family:var(--display);font-weight:800;font-size:18px;color:var(--candy-ink);transform:scale(1.4)}
+.bubbles{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.bub{aspect-ratio:1;max-width:100%;border-radius:50%;padding:0;min-height:0;position:relative;box-shadow:inset -6px -6px 0 rgba(0,0,0,.08)}
+.bub::after{content:"";position:absolute;width:26%;height:26%;border-radius:50%;background:rgba(255,255,255,.75);top:18%;left:20%}
+.bub.popped{animation:popb .3s forwards;pointer-events:none}
+@keyframes popb{50%{transform:scale(1.25)}100%{transform:scale(0);opacity:0}}
+
+details.art{background:var(--card);border-radius:22px;overflow:hidden}
+details.art summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;gap:12px;align-items:center}
+details.art summary::-webkit-details-marker{display:none}
+details.art .ico{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;flex:none;font-family:var(--display);font-weight:800;color:var(--candy-ink)}
+details.art .body{padding:0 16px 16px;display:flex;flex-direction:column;gap:8px;max-width:65ch}
+details.art ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+
+nav.tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:20;width:min(430px,calc(100% - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));background:var(--card);border-radius:30px;box-shadow:0 10px 30px rgba(30,20,70,.18);padding:6px;display:grid;grid-template-columns:repeat(5,1fr);gap:2px}
+nav.tabs[hidden]{display:none}
+nav.tabs button{flex-direction:column;gap:1px;border-radius:24px;background:transparent;font-size:11px;font-weight:800;color:var(--ink2);padding:6px 2px;min-height:56px}
+nav.tabs svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button.on{background:var(--pri-soft);color:var(--pri)}
+:root[data-mode="dark"] nav.tabs button.on{color:var(--ink)}
+
+.scrim{position:fixed;inset:0;background:rgba(20,15,40,.5);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.scrim.center{align-items:center;padding:16px}
+.sheet{background:var(--bg);width:100%;max-width:460px;max-height:88vh;overflow:auto;border-radius:30px 30px 0 0;padding:20px max(16px,env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.sheet .grab{width:44px;height:5px;border-radius:9px;background:var(--line);align-self:center}
+.welcome{background:var(--bg);border-radius:32px;padding:24px 20px;max-width:380px;width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;animation:bounce .6s cubic-bezier(.3,1.6,.5,1)}
+.welcome svg{width:140px;height:auto}
+.big-xp{font-family:var(--display);font-weight:800;font-size:40px;color:var(--pri);line-height:1}
+.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:800;font-size:14px;max-width:calc(100% - 32px);text-align:center}
+#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:70}
+.float{position:fixed;z-index:71;pointer-events:none;font-family:var(--display);font-weight:800;font-size:22px;color:var(--pri);-webkit-text-stroke:4px var(--bg);paint-order:stroke fill;animation:floatup .9s ease-out forwards;transform:translate(-50%,-50%)}
+@keyframes floatup{to{transform:translate(-50%,-170%);opacity:0}}
+.mood{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mood button{flex-direction:column;border-radius:22px;padding:10px 4px;min-height:84px;gap:4px}
+.mood button.on{background:var(--sun);color:var(--candy-ink)}
+.mood svg{width:40px;height:40px}
+.ob{min-height:calc(100vh - 40px);display:flex;flex-direction:column;justify-content:center;gap:18px;padding-block:30px}
+.ob .hero{display:grid;place-items:center;background:var(--pri-soft);border-radius:32px;padding:20px}
+.ob .hero svg{width:150px}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:9px;background:var(--line)}.dots i.on{width:24px;background:var(--pri)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--chip);border-radius:999px;padding:10px 16px;min-height:44px}
+.chip.on{background:var(--mint);color:var(--candy-ink)}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.lbl{font-weight:800;font-size:13px;color:var(--ink2)}
+.iconbtn{width:44px;height:44px;padding:0;border-radius:50%;background:var(--card);flex:none}
+.iconbtn svg{width:22px;height:22px;stroke:var(--ink);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.phone{display:grid;grid-template-columns:minmax(0,8.5em) minmax(0,1fr);gap:8px}
+.hscroll{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 2px 8px;scrollbar-width:none}
+.hscroll::-webkit-scrollbar{display:none}
+.hscroll>*{scroll-snap-align:start;flex:none}
+.rewards-strip .item{width:148px}
+.ins{width:152px;border-radius:26px;padding:4px;border:3px solid var(--pri);background:var(--bg);text-align:left;display:block;min-height:0;position:relative}
+.ins.read{border-color:var(--line)}
+.ins .in{border-radius:20px;height:210px;padding:12px;display:flex;flex-direction:column;overflow:hidden;position:relative;color:var(--candy-ink)}
+.ins .in b{font-family:var(--display);font-weight:800;font-size:18px;line-height:1.12;position:relative;z-index:1;padding-right:6px}
+.ins .pill{position:absolute;top:0;right:0;background:var(--bg);color:var(--ink);font-size:12px;font-weight:800;padding:4px 10px;border-radius:0 0 0 14px;z-index:2}
+.ins .in svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:auto}
+.ins .tick{width:26px;height:26px;border-radius:50%;background:var(--mint);display:grid;place-items:center;margin-bottom:6px;position:relative;z-index:1}
+.sugg{border-radius:28px;padding:18px;color:#fff;display:grid;grid-template-columns:minmax(0,1fr) 110px;gap:10px;align-items:center}
+.sugg h2{color:inherit;font-size:24px}
+.sugg ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-weight:700}
+.sugg li{display:flex;gap:8px;align-items:center}
+.sugg li i{width:8px;height:8px;border-radius:50%;background:var(--sun);flex:none}
+.sugg .btn{background:#fff;color:var(--candy-ink);align-self:flex-start}
+.sugg svg{width:110px;height:auto;display:block}
+.story{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;justify-content:center}
+.story .wrap{width:100%;max-width:520px;display:flex;flex-direction:column;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.bars{display:flex;gap:4px}.bars i{flex:1;height:5px;border-radius:9px;background:var(--line)}.bars i.on{background:var(--pri)}
+.stage{flex:1;border-radius:30px;display:flex;flex-direction:column;overflow:hidden;color:var(--candy-ink);position:relative;min-height:0}
+.stage .pic{flex:1;display:grid;place-items:center;padding:16px;min-height:0}
+.stage .pic svg{width:100%;max-width:300px;max-height:100%;height:auto}
+.stage .txt{background:var(--bg);color:var(--ink);margin:0 10px 10px;border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:8px}
+.tapzones{position:absolute;inset:0 0 auto;height:55%;display:grid;grid-template-columns:1fr 2fr}
+.tapzones button{background:transparent;border-radius:0;min-height:0;height:100%;padding:0}
+.qopts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.verdict{border-radius:16px;padding:10px 12px;font-weight:700}
+.verdict.ok{background:var(--mint);color:var(--candy-ink)} .verdict.no{background:var(--gum);color:var(--candy-ink)}
+.trail{grid-column:1/-1;flex-direction:column;align-items:stretch;background:var(--bg);border-radius:20px;padding:10px 10px 10px;gap:8px;gap:0;text-align:left;font-weight:800}
+.trail svg{width:100%;height:auto;display:block}
+.map{height:540px;overflow-y:auto;border-radius:22px;background:#A6DA82;overscroll-behavior:contain}
+.map svg{display:block;width:100%;height:auto}
+.walker{animation:hop 1.1s ease-in-out infinite}
+@keyframes hop{50%{transform:translateY(-5px)}}
+.locked{filter:grayscale(.85);opacity:.55}
+.mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:transparent;padding:0;border-radius:0;min-height:0;text-align:left;font-weight:700}
+.mini-stats>span{background:var(--bg);border-radius:16px;padding:10px 12px;display:flex;flex-direction:column}
+.mini-stats b{font-family:var(--display);font-size:22px;line-height:1.1;font-weight:800}
+.barrow{display:grid;grid-template-columns:84px minmax(0,1fr) 24px;gap:8px;align-items:center;font-size:13px;font-weight:700}
+.bar{height:12px;border-radius:9px;background:var(--bg);overflow:hidden;display:block}.bar i{display:block;height:100%;border-radius:9px}
+.tl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.tl li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}
+.tl .dot{width:28px;height:28px;border-radius:50%;background:var(--chip);display:grid;place-items:center}
+.tl li.ok .dot{background:var(--mint)}
+.brandrow{display:flex;align-items:center;gap:12px}.wm{font-family:var(--display);font-weight:800;font-size:30px;line-height:1}
+.demo-banner{background:var(--sun);color:var(--candy-ink);border-radius:16px;padding:6px 6px 6px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-weight:800;font-size:13px}
+.demo-banner button{color:var(--candy-ink);background:rgba(255,255,255,.55);min-height:36px;padding:6px 12px}
+.rep{flex-direction:row;align-items:center;gap:6px;white-space:nowrap;color:var(--ink2);font-size:13px}.rep input{width:18px;height:18px;min-height:0;accent-color:var(--pri)}
+.sum{width:100%;border-collapse:collapse;font-size:14px}.sum th,.sum td{border-bottom:1px solid var(--line);padding:9px 0;vertical-align:top;text-align:left}.sum th{width:34%;padding-right:10px;color:var(--ink2);font-weight:800}
+.flow{animation:flow 2.4s linear infinite}@keyframes flow{to{stroke-dashoffset:-40}}
+.fall path{animation:fall .9s linear infinite}@keyframes fall{to{stroke-dashoffset:-12}}
+.flick{transform-box:fill-box;transform-origin:50% 100%;animation:flick .45s ease-in-out infinite alternate}@keyframes flick{to{transform:scaleY(.8) scaleX(1.08)}}
+.flut{transform-box:fill-box;transform-origin:center;animation:flut .32s ease-in-out infinite alternate}@keyframes flut{to{transform:scaleX(.45)}}
+.drift{animation:drift 16s ease-in-out infinite alternate}@keyframes drift{to{transform:translateX(18px)}}
+.twinkle,.shimmer{animation:twinkle 1.7s ease-in-out infinite alternate}@keyframes twinkle{to{opacity:.35}}
+.quest.pop{animation:qpop .45s cubic-bezier(.3,1.6,.5,1)}@keyframes qpop{0%{transform:scale(.97)}40%{transform:scale(1.04)}100%{transform:scale(1)}}
+.quest.pop .box::after{animation:tick .4s cubic-bezier(.3,1.6,.5,1)}@keyframes tick{from{transform:translateY(-2px) rotate(45deg) scale(0)}}
+.pst{width:74px;height:74px;border-radius:50%;padding:5px;box-shadow:0 4px 12px rgba(40,25,90,.18);transform:rotate(-5deg);position:relative;overflow:hidden;flex:none}
+.pst .pin{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;overflow:hidden}.pst svg{width:86%;height:auto}
+.pst.off{filter:grayscale(1);opacity:.3;transform:none;box-shadow:none}
+.pst.t2:not(.off)::after,.pst.t3:not(.off)::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.75) 50%,transparent 65%);animation:shine 3s ease-in-out infinite}
+.pst.t3:not(.off)::after{animation-duration:2s}@keyframes shine{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
+.jst .sticker{gap:4px}.tier{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:1px 8px;color:var(--candy-ink)}
+.tt0{background:#E8F7E0}.tt1{background:#DDE6F2}.tt2{background:#FFE680}.tt3{background:linear-gradient(90deg,#FFB3D6,#FFE680,#A8F0D8,#B3DEFF)}
+.bigst .pst{width:150px;height:150px;padding:9px}
+.protag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;background:linear-gradient(90deg,#FFD43B,#FF9F43);color:#1A1530;border-radius:999px;padding:2px 8px;vertical-align:middle;margin-left:4px}
+.procard{background:linear-gradient(150deg,var(--pri),#2B2D52);color:#fff}
+.ptable{overflow-x:auto;background:rgba(255,255,255,.1);border-radius:16px}
+.ptable table{width:100%;border-collapse:collapse;font-size:12.5px}.ptable th,.ptable td{padding:7px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.15);vertical-align:top}.ptable th{font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.locked-card{position:relative;overflow:hidden}.blurred{filter:blur(5px);opacity:.6;pointer-events:none;display:flex;flex-direction:column;gap:10px}
+.lockover{position:absolute;inset:56px 12px 12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;background:color-mix(in srgb,var(--card) 70%,transparent);border-radius:18px;padding:16px}
+.chart{width:100%;height:auto;display:block}
+.moodrow{display:grid;grid-template-columns:repeat(14,1fr);gap:4px}.moodrow i{aspect-ratio:1;border-radius:50%;background:var(--chip)}.moodrow .m1{background:var(--lilac)}.moodrow .m2{background:var(--sky)}.moodrow .m3{background:var(--mint)}
+.report{white-space:pre-wrap;font-family:var(--body);font-size:13px;background:var(--card);border-radius:14px;padding:12px;margin:0;user-select:all}
+.pond{height:220px;border-radius:22px;background:radial-gradient(circle at 30% 30%,#A8E0FF,#4FA8E0);position:relative;overflow:hidden;cursor:pointer}
+.ripple{position:absolute;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:3px solid rgba(255,255,255,.9);animation:rip 1.6s ease-out forwards;pointer-events:none}
+@keyframes rip{to{transform:scale(9);opacity:0}}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;max-width:300px;align-self:center}
+.keypad button{height:64px;border-radius:22px;font-size:24px;font-weight:800;background:var(--card);display:flex;align-items:center;justify-content:center}
+.pindots{display:flex;gap:14px;justify-content:center;margin:6px 0 10px}.pindots i{width:16px;height:16px;border-radius:50%;border:2px solid var(--pri);display:block}.pindots i.on{background:var(--pri)}
+.pindots.shake{animation:shake .4s}@keyframes shake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}
+.lockscreen{align-items:stretch}.plainlogo{width:56px;height:56px;border-radius:16px;background:var(--chip);display:flex;align-items:center;justify-content:center;margin:0 auto}.plainlogo svg{width:30px;height:30px}
+.esc{background:#FFE8CC;color:#3A2200}
+.plan{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bg);border-radius:18px;padding:10px 12px}.plan p{margin:0}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:700;line-height:1.4}.consent input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--pri)}
+.consent.need{outline:2px solid #E5484D;outline-offset:4px;border-radius:8px}
+.qrbox{display:flex;justify-content:center;background:#fff;border-radius:18px;padding:14px;min-height:60px}.qrbox img,.qrbox canvas{max-width:100%}
+.say-btn{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;padding-inline:0}
+textarea{font:inherit;border-radius:14px;border:2px solid var(--line);padding:10px;background:var(--bg);color:var(--ink)}
+</style>
+
+<div id="root" class="app"></div>
+<nav class="tabs" id="tabs" hidden></nav>
+<div id="sheet-host"></div>
+<div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<script>
+(function(){
+"use strict";
+const KEY="focus-recovery-v2";
+const DAY=864e5;
+const z=n=>String(n).padStart(2,"0");
+const ymd=d=>d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate());
+const today=()=>ymd(new Date());
+const parseYmd=s=>{const[a,b,c]=s.split("-").map(Number);return new Date(a,b-1,c)};
+const addDays=n=>{const d=new Date();d.setDate(d.getDate()+n);return ymd(d)};
+const daysSince=s=>Math.max(0,Math.round((parseYmd(today())-parseYmd(s))/DAY));
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtTime=d=>d.toLocaleTimeString([], {hour:"numeric",minute:"2-digit"});
+const fmtDate=d=>d.toLocaleDateString([], {weekday:"short",day:"numeric",month:"short"});
+const localDT=d=>ymd(d)+"T"+z(d.getHours())+":"+z(d.getMinutes());
+const reduced=()=>!!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+const MILES=[3,7,15,30,60,90];
+const SUBS=["Alcohol","Tobacco","Cannabis","Other"];
+const CANDY=["--sun","--mint","--gum","--sky","--lime","--lilac"];
+
+const THEMES={
+  grape:{name:"Grape",pri:"#6C4CF5",soft:"#ECE6FF",pot:"#E6DEFF",price:0},
+  ocean:{name:"Ocean",pri:"#1F7FE0",soft:"#E1EFFD",pot:"#D3E7FB",price:60},
+  jungle:{name:"Jungle",pri:"#13945B",soft:"#DDF5E9",pot:"#CDEFDD",price:60},
+  berry:{name:"Berry",pri:"#C2255C",soft:"#FBE3EC",pot:"#F7D3E1",price:80},
+  midnight:{name:"Midnight",pri:"#2B2D52",soft:"#E3E4F2",pot:"#D6D8EE",price:100}
+};
+const ACCS={none:{name:"No hat",price:0},party:{name:"Party hat",price:40},shades:{name:"Cool shades",price:50},crown:{name:"Flower crown",price:70},bow:{name:"Big bow",price:40},captain:{name:"Captain hat",price:0,pro:true},phones:{name:"Headphones",price:0,pro:true}};
+const STICKERS=[
+  ["first","Started","Go","--sun"],["showup","Showed up","Hi","--mint"],["checkin","Checked in","10s","--sky"],
+  ["clear","Quest clear","All","--gum"],["d3","3 days","3","--lime"],["d7","7 days","7","--lilac"],["d15","15 days","15","--sun"],
+  ["d30","30 days","30","--mint"],["d60","60 days","60","--sky"],["d90","90 days","90","--gum"],
+  ["booked","Booked it","Bk","--lime"],["arrived","Made it","In","--lilac"],["back","Came back","Up","--sun"],
+  ["calm","Calm minute","Ah","--mint"],["popper","Bubble pro","Pop","--sky"],["explorer","Explorer","Map","--gum"],["reader","Bookworm","Rd","--lime"]
+];
+
+function blank(){return {v:2,onboarded:false,demo:false,xp:0,seeds:0,sound:true,haptic:true,notif:true,
+  trackers:[],checkins:{},qdone:{},custom:{},slips:[],stickers:{},showups:[],lastOpen:"",
+  owned:{grape:true,none:true},equip:{theme:"grape",acc:"none"},
+  clinic:{name:"",doctor:"",cc:"India|91",phone:"",booking:"",address:""},appt:null,meds:[],stats:{quests:0,pops:0,arrivals:0},mode:"light",read:{},jcred:{},jreached:null,triggers:[],daily:[],pace:"long",pro:false,difficulty:"standard"}}
+function sample(){
+  const s=blank();const now=new Date();
+  let ap=new Date(now.getTime()+2*3600e3);ap.setMinutes(ap.getMinutes()<30?30:60,0,0);
+  if(ap.getHours()>=21||ymd(ap)!==ymd(now)){ap=new Date(now);ap.setDate(ap.getDate()+1);ap.setHours(10,30,0,0)}
+  const t={};t[addDays(-3)]=6;t[addDays(-2)]=5;t[addDays(-1)]=4;t[today()]=1;
+  Object.assign(s,{onboarded:true,demo:true,xp:340,seeds:120,
+    trackers:[{id:"t1",sub:"Alcohol",goal:"quit",start:addDays(-15),limit:0,log:{},spend:300,perDay:4},{id:"t2",sub:"Tobacco",goal:"reduce",start:addDays(-6),limit:5,log:t,spend:150,perDay:15}],
+    triggers:[["Stress",19,"Some"],["People",21,"Strong"],["Boredom",22,"Some"],["Stress",18,"Some"],["Celebration",20,"Strong"],["Tiredness",23,"Some"],["Stress",19,"Some"],["Low mood",22,"Some"],["People",20,"Some"],["Stress",11,"Some"]].map(([g,h,c],i)=>({d:addDays(-(i*2+1)),h,c,tags:[g],sub:i%3?"Alcohol":"Tobacco",i:c==="Strong"?4+(i%2):2+(i%2),helped:[["Calm corner","Went for a walk","Drank water","Called someone","Waited it out"][i%5]]})),
+    qdone:Object.fromEntries([...Array(13)].map((_,k)=>[addDays(-(k+1)),Object.fromEntries([...Array(3+((k*5)%6))].map((_,j)=>["x"+j,true]))])),
+    stickers:{first:addDays(-15),showup:addDays(-15),checkin:addDays(-14),d3:addDays(-12),d7:addDays(-8),d15:addDays(0),booked:addDays(-4),calm:addDays(-6),clear:addDays(-3)},
+    showups:Array.from({length:11},(_,i)=>addDays(-(i+1))),
+    owned:{grape:true,none:true,party:true},equip:{theme:"grape",acc:"party"},
+    custom:{[today()]:[{id:"c1",t:"Drink a glass of water"}]},
+    clinic:{name:"Sunrise Clinic (sample)",doctor:"Dr. Meera Rao (sample)",cc:"India|91",phone:"80 0000 0000",booking:"",address:"Hosur Road, Bengaluru"},
+    appt:{when:localDT(ap),arrived:false},
+    meds:[{id:"m1",name:"Morning medicine (sample)",time:"09:00",log:{}}],
+    stats:{quests:38,pops:60,arrivals:1},read:{adhd:addDays(-2)},slips:[{id:"t1",date:addDays(-15),step:40}],checkins:Object.fromEntries([1,2,3,4,5,6,7,8,9,10].map(i=>[addDays(-i),{mood:["Okay","Good","Low","Okay","Good"][i%5],craving:"Some"}]))
+  });
+  return s;
+}
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){S=null}
+if(!S||S.v!==2)S=blank();
+S.mode=S.mode||"light";if(S.pro===undefined)S.pro=false;S.difficulty=S.difficulty||"standard";S.daily=S.daily||[];S.pace=S.pace||"long";S.triggers=S.triggers||[];S.jcred=S.jcred||{};if(S.jreached===undefined)S.jreached=null;S.stats.arrivals=S.stats.arrivals||0;S.read=S.read||{};S.clinic.cc=S.clinic.cc||"India|91";
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+
+let tab=(location.hash||"#today").slice(1);if(!["today","journey","care","learn","calm","me"].includes(tab))tab="today";
+let ob={step:1,picks:{}};
+let ui={editClinic:false,editAppt:false,addMed:false,addTracker:false,confirmReset:false};
+
+/* ---------- feel: haptics, sound, confetti ---------- */
+function buzz(p){if(!S.haptic)return;try{if(navigator.vibrate)navigator.vibrate(p)}catch(e){}}
+let actx;
+function tone(f,t0,d,type,vol){
+  const o=actx.createOscillator(),g=actx.createGain();o.type=type||"sine";
+  o.frequency.setValueAtTime(f,t0);o.frequency.exponentialRampToValueAtTime(f*1.9,t0+d*.6);
+  g.gain.setValueAtTime(.0001,t0);g.gain.exponentialRampToValueAtTime(vol||.22,t0+.012);g.gain.exponentialRampToValueAtTime(.0001,t0+d);
+  o.connect(g);g.connect(actx.destination);o.start(t0);o.stop(t0+d+.02);
+}
+function sfx(kind){
+  if(!S.sound)return;
+  try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();if(actx.state==="suspended")actx.resume();
+    const t=actx.currentTime;
+    if(kind==="pop")tone(420+Math.random()*160,t,.13,"sine",.25);
+    else if(kind==="tick")tone(900,t,.05,"triangle",.12);
+    else if(kind==="win")[523,659,784,1046].forEach((f,i)=>tone(f,t+i*.09,.22,"triangle",.2));
+    else if(kind==="coin"){tone(988,t,.08,"square",.07);tone(1318,t+.08,.18,"square",.07)}
+  }catch(e){}
+}
+const cv=document.getElementById("fx"),cx=cv.getContext("2d");let parts=[],raf=0;
+function sizeFx(){const r=window.devicePixelRatio||1;cv.width=innerWidth*r;cv.height=innerHeight*r;cx.setTransform(r,0,0,r,0,0)}
+sizeFx();addEventListener("resize",sizeFx);
+function cssVar(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function burst(x,y,n,power){
+  if(reduced())return;power=power||9;
+  const cols=CANDY.map(cssVar).concat([cssVar("--pri")]);
+  for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,s=(Math.random()*.7+.3)*power;
+    parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-power*.6,r:Math.random()*6+4,rot:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[i%cols.length],sh:i%3,life:1})}
+  if(!raf)raf=requestAnimationFrame(step);
+}
+function rain(){if(reduced())return;for(let i=0;i<6;i++)setTimeout(()=>burst(Math.random()*innerWidth,-20,30,6),i*120)}
+function step(){
+  cx.clearRect(0,0,innerWidth,innerHeight);
+  parts.forEach(p=>{p.vy+=.28;p.vx*=.985;p.vy*=.985;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.life-=.007;
+    cx.save();cx.globalAlpha=Math.max(0,Math.min(1,p.life*1.5));cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillStyle=p.c;
+    if(p.sh===0)cx.fillRect(-p.r/2,-p.r/3,p.r,p.r*.66);else if(p.sh===1){cx.beginPath();cx.arc(0,0,p.r/2.4,0,7);cx.fill()}
+    else{cx.beginPath();for(let k=0;k<5;k++){const a=k*1.2566-1.57;cx.lineTo(Math.cos(a)*p.r*.6,Math.sin(a)*p.r*.6);const b=a+.628;cx.lineTo(Math.cos(b)*p.r*.25,Math.sin(b)*p.r*.25)}cx.closePath();cx.fill()}
+    cx.restore()});
+  parts=parts.filter(p=>p.life>0&&p.y<innerHeight+40);
+  if(parts.length)raf=requestAnimationFrame(step);else{cx.clearRect(0,0,innerWidth,innerHeight);raf=0}
+}
+function floatText(x,y,txt){const s=document.createElement("div");s.className="float";s.textContent=txt;s.style.left=x+"px";s.style.top=y+"px";document.body.appendChild(s);setTimeout(()=>s.remove(),950)}
+function celebrate(el,txt,big){
+  const r=el&&el.getBoundingClientRect?el.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
+  const x=r.left+r.width/2,y=r.top+r.height/2;
+  burst(x,y,big?90:36,big?13:9);buzz(big?[30,40,30,40,60]:25);sfx(big?"win":"pop");if(txt)floatText(x,y-10,txt);
+}
+let toastT;
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
+
+/* ---------- xp / levels ---------- */
+function levelInfo(xp){let l=1,need=100,x=xp;while(x>=need){x-=need;l++;need=100+(l-1)*50}return {l,x,need}}
+function gain(xp,seeds){S.xp=Math.max(0,S.xp+xp);S.seeds=Math.max(0,S.seeds+(seeds||0))}
+function sticker(id,quiet){if(S.stickers[id])return false;S.stickers[id]=today();S.seeds+=10;S.xp+=25;
+  if(!quiet){const s=STICKERS.find(x=>x[0]===id);setTimeout(()=>{toast("New sticker: "+s[1]+"  +10 seeds");sfx("coin")},600)}return true}
+function progressDays(t){if(t.goal==="quit")return daysSince(t.start);return Object.keys(t.log).filter(d=>d>=t.start&&d<today()&&t.log[d]<=t.limit).length}
+function checkMilestones(quiet){S.trackers.forEach(t=>{const d=progressDays(t);MILES.forEach(m=>{if(d>=m)sticker("d"+m,quiet)})})}
+
+function apptInfo(){if(!S.appt||!S.appt.when)return null;const d=new Date(S.appt.when),now=new Date(),diff=d-now,same=ymd(d)===ymd(now);
+  return {d,diff,past:diff<-3*3600e3,window:same&&diff<=3*3600e3&&diff>=-3*3600e3,arrived:!!S.appt.arrived,today:same}}
+function relTime(ms){const m=Math.round(Math.abs(ms)/60000);if(m<60)return m+" min";const h=Math.round(m/60);if(h<24)return h+" hr";return Math.round(h/24)+" days"}
+
+/* ---------- quests ---------- */
+function qd(){return S.qdone[today()]||(S.qdone[today()]={})}
+function quests(){
+  const q=[];const a=apptInfo();
+  q.push({id:"checkin",t:"10-second check-in",s:"How are you, really?",act:"checkin"});
+  S.meds.forEach(m=>q.push({id:"med-"+m.id,t:"Take "+m.name.replace(/ \(sample\)/,"").toLowerCase(),s:"at "+m.time,act:"toggle"}));
+  S.trackers.forEach(t=>q.push(t.goal==="quit"?{id:"free-"+t.id,t:DISC()?"Stay on track with "+SN(t)+" today":t.sub+"-free today",s:"Unlocks at 5 pm, once the day's nearly done",act:"free",tid:t.id}:
+    {id:"lim-"+t.id,t:t.limit+" or fewer "+(DISC()?"for "+SN(t):t.sub.toLowerCase())+" today",s:"Count them in the tracker below",act:"toggle"}));
+  if(S.trackers.length){const di=Math.floor(Date.now()/DAY),tk=S.trackers[di%S.trackers.length],key=tk.sub==="Tobacco"?(tk.goal==="quit"?"TobaccoQ":"TobaccoR"):tk.sub,L=DISC()?SQ.Other:(SQ[key]||SQ.Other);q.push({id:"sq-"+tk.id,t:L[di%L.length],s:SN(tk)+" quest",act:"toggle"})}
+  if(a&&!a.arrived&&a.today)q.push({id:"arrive",t:"Get to your appointment",s:fmtTime(a.d)+" · tap when you arrive",act:"arrive"});
+  else if(!a||a.arrived||a.past)q.push({id:"book",t:"Book your next appointment",s:"Opens Care",act:"go-care"});
+  else q.push({id:"question",t:"Write 1 question for your doctor",s:"Visit on "+fmtDate(a.d),act:"toggle"});
+  if(!S.plans.length||qd().plan)q.push({id:"plan",t:"Make 1 if-then plan",s:"For your riskiest moment · opens Care",act:"go-plans"});
+  if(trustedDue())q.push({id:"hello",t:"Send your weekly hello to "+(S.trusted.name||"your person").replace(/ \(sample\)/,""),s:"One line, no details",act:"hello"});
+  q.push({id:"learn",t:"Read 1 insight",s:"A 1-minute picture story in Learn",act:"go-learn"});
+  q.push({id:"calm",t:"One calm minute",s:"Breathe or pop bubbles",act:"go-calm"});
+  (S.daily||[]).forEach(c=>q.push({id:"d-"+c.id,t:c.t,s:"Daily quest",act:"toggle",daily:c.id}));
+  (S.custom[today()]||[]).forEach(c=>q.push({id:"c-"+c.id,t:c.t,s:"Your quest",act:"toggle",custom:c.id}));
+  return q;
+}
+function completeQuest(id,el){ui.justDone=id;setTimeout(()=>{ui.justDone=null},800);
+  const d=qd();if(d[id])return;d[id]=true;S.stats.quests++;gain(10,2);celebrate(el,"+1 step");
+  const all=quests();
+  if(all.every(x=>d[x.id])){setTimeout(()=>{rain();sfx("win");buzz([40,50,40,50,90]);gain(30,10);if(!sticker("clear"))toast("Quest clear! +10 seeds");save();render();bumpBuddy()},500)}
+}
+function undoQuest(id){const d=qd();if(!d[id])return;delete d[id];S.stats.quests=Math.max(0,S.stats.quests-1);gain(-10,-2)}
+function moodLevel(){const q=quests(),d=qd();const n=q.filter(x=>d[x.id]).length,f=q.length?n/q.length:0;return f===0?0:f<.5?1:f<1?2:3}
+const SAYS=["Morning! Tap a quest to wake me up.","Ooh, nice start. Keep going!","We're on a roll!","ALL DONE. You're amazing."];
+
+function buddy(mood,acc){
+  let eye,mouth,cheek="",extra="";
+  if(mood===0){eye='<path class="facel" d="M30 64h13"/>';mouth='<path class="facel" d="M25 80h8"/>'}
+  else if(mood===1){eye='<circle cx="37" cy="63" r="9" fill="#fff"/><circle class="face" cx="35" cy="64" r="4.6"/><circle cx="37" cy="62" r="1.5" fill="#fff"/>';mouth='<path class="facel" d="M23 78q6 5 12 0"/>'}
+  else if(mood===2){eye='<circle cx="37" cy="62" r="10" fill="#fff"/><circle class="face" cx="35" cy="63" r="5.4"/><circle cx="37.5" cy="60.5" r="1.8" fill="#fff"/>';mouth='<path class="facel" d="M21 77q8 8 16 0"/>';cheek='<circle class="cheek" cx="49" cy="76" r="5"/>';extra='<circle cx="12" cy="44" r="4" fill="none" stroke="#7CCBFF" stroke-width="2.5"/>'}
+  else{eye='<path class="facel" d="M29 65q7-9 14 0"/>';mouth='<path class="face" d="M20 75h18q-2 12-9 12t-9-12z"/><path fill="#FF7EB6" d="M25 83q4-3 8 0q-4 3-8 0z"/>';cheek='<circle class="cheek" cx="49" cy="75" r="5.5"/>';extra='<circle cx="12" cy="44" r="4.5" fill="none" stroke="#7CCBFF" stroke-width="2.5"/><circle cx="6" cy="30" r="3" fill="none" stroke="#7CCBFF" stroke-width="2.5"/><path d="M104 18l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#FFD43B"/>'}
+  const tail=mood>=2?'<path class="rim" d="M93 74L118 44Q108 72 117 98z"/>':'<path class="rim" d="M93 76L117 54Q108 78 116 102z"/>';
+  let a="";
+  if(acc==="party")a='<path d="M48 49l11-30 11 28z" fill="#FFD43B"/><path d="M52 41h14M54 33h10" stroke="#FF7EB6" stroke-width="3"/><circle cx="59" cy="19" r="4" fill="#FF7EB6"/>';
+  if(acc==="shades")a='<rect x="23" y="56" width="27" height="14" rx="6" fill="#1A1530"/><path d="M50 61h12" stroke="#1A1530" stroke-width="3"/><path d="M27 59h7" stroke="#fff" stroke-width="2" opacity=".6"/>';
+  if(acc==="crown")a=[34,44,54,64,74].map((x,i)=>`<circle cx="${x}" cy="${47-(i%2?3:0)-(i===2?3:0)}" r="5.5" fill="${["#FF7EB6","#FFD43B","#6EC6FF","#B6E84C","#B9A4FF"][i]}"/><circle cx="${x}" cy="${47-(i%2?3:0)-(i===2?3:0)}" r="1.8" fill="#fff"/>`).join("");
+  if(acc==="captain")a='<path d="M44 47h32l-4-13H48z" fill="#fff" stroke="#1A1530" stroke-width="2" stroke-linejoin="round"/><rect x="41" y="45" width="38" height="6" rx="3" fill="#1A1530"/><circle cx="60" cy="40" r="3.2" fill="#FFD43B"/>';
+  if(acc==="phones")a='<path d="M30 62a28 27 0 0 1 56 0" stroke="#1A1530" stroke-width="5" fill="none"/><rect x="23" y="58" width="11" height="18" rx="5.5" fill="#FF7EB6" stroke="#1A1530" stroke-width="2"/><rect x="82" y="58" width="11" height="18" rx="5.5" fill="#FF7EB6" stroke="#1A1530" stroke-width="2"/>';
+  if(acc==="bow")a='<path d="M62 40l-14-8v16zM62 40l14-8v16z" fill="#FF7EB6"/><circle cx="62" cy="40" r="4.5" fill="#E5487F"/>';
+  return `<svg viewBox="0 0 120 130" role="img" aria-label="Finn the fish looks ${["sleepy","happy","very happy","overjoyed"][mood]}">
+    <ellipse cx="60" cy="118" rx="32" ry="5" fill="#1A1530" opacity=".1"/>${extra}${tail}
+    <path d="M42 48q18-24 38 0z" fill="#FFD43B"/><ellipse class="rim" cx="57" cy="76" rx="40" ry="30"/>
+    <path class="pot" d="M24 86q33 24 64 0q-31 10-64 0z"/><path d="M72 64q6 7 0 14M82 64q6 7 0 14" stroke="#fff" stroke-opacity=".35" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M58 90q9 14 22 6q-9-1-22-6z" fill="#FFD43B"/>${eye}${cheek}${mouth}${a}</svg>`;
+}
+function moodFace(i){
+  const fills=["#B9A4FF","#6EC6FF","#FFD43B"],m=['<path d="M13 29q7-6 14 0" stroke="#1A1530" stroke-width="2.6" fill="none" stroke-linecap="round"/>','<path d="M14 27h12" stroke="#1A1530" stroke-width="2.6" stroke-linecap="round"/>','<path d="M12 24q8 9 16 0" stroke="#1A1530" stroke-width="2.6" fill="none" stroke-linecap="round"/>'];
+  return `<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="${fills[i]}"/><circle cx="14" cy="17" r="2.5" fill="#1A1530"/><circle cx="26" cy="17" r="2.5" fill="#1A1530"/>${m[i]}</svg>`}
+
+const IC={
+  today:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="6"/><path d="M8 12l3 3 5-6"/></svg>',
+  care:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="4"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  journey:'<svg viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></svg>',
+  learn:'<svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z"/><path d="M4 19V5M9 8h6"/></svg>',
+  calm:'<svg viewBox="0 0 24 24"><circle cx="9" cy="10" r="5"/><circle cx="17" cy="16" r="3.5"/><circle cx="16" cy="5" r="2"/></svg>',
+  me:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'
+};
+const SEED='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFD43B"/><path d="M12 17V10" stroke="#1A1530" stroke-width="2.2" stroke-linecap="round"/><path d="M12 11c0-3 2-5 5-5 0 3-2 5-5 5zM12 12c0-2.5-2-4-4.5-4 0 2.5 2 4 4.5 4z" fill="#3DBB6B"/></svg>';
+
+/* ---------- views ---------- */
+const MOON='<svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/></svg>';
+const SUNI='<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+const XICON='<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const CHECK='<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12l4 4 10-10" stroke="#1A1530" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function header(title){
+  return `<div class="top"><div class="title"><h1><span>${L(title)}</span></h1>${S.pro?PROTAG:""}${S.demo?'<span class="demo-tag">Sample</span>':""}</div>
+  <div class="row" style="gap:8px;flex-wrap:nowrap"><button class="iconbtn" data-act="mode" aria-label="Switch to ${isDark()?"day":"night"} mode" title="${isDark()?"Day":"Night"} mode">${isDark()?SUNI:MOON}</button>
+  <button class="chipstat num" data-act="go-rewards" title="Your seeds. Tap for the reward centre">${SEED}${S.seeds}</button></div></div>`;
+}
+function vTracker(t){
+  const d=progressDays(t),next=MILES.find(m=>m>d);
+  const dots=MILES.map(m=>`<div class="ms ${d>=m?"on":(m===next?"nextm":"")}"><span></span>${m}</div>`).join("");
+  if(t.goal==="quit")return `<div class="card tracker"><div class="row between"><h3>${esc(SN(t))}</h3><span class="tag">Goal: stop</span></div>
+    <div class="row" style="align-items:baseline"><span class="big num">${d}</span><span class="muted">${d===1?"day":"days"} ${FREE(t)}</span></div>
+    <div class="track">${dots}</div><p class="small muted">${next?`${next-d} more to unlock the ${next}-day sticker`:"Every milestone unlocked!"}</p>
+    ${statsHtml(t)}<div class="row between"><button class="ghost small" style="padding-inline:0" data-act="health:${t.id}">What's improving ›</button><button class="ghost small" data-act="slip:${t.id}">I had a slip</button></div></div>`;
+  const c=t.log[today()]||0;
+  return `<div class="card tracker"><div class="row between"><h3>${esc(SN(t))}</h3><span class="tag reduce">Goal: ${t.limit} or fewer a day</span></div>
+    <div class="row between"><div><div class="eyebrow">Today</div><p class="small muted">Tap + for each one</p></div>
+    <div class="stepper"><button data-act="dec:${t.id}" aria-label="Remove one">−</button><output class="num">${c}</output><button data-act="inc:${t.id}" aria-label="Add one">+</button></div></div>
+    ${c>t.limit?`<div class="note">Over today's goal. That's information, not failure. Fresh count tomorrow.</div>`:""}
+    <div class="row" style="align-items:baseline"><span class="big num" style="font-size:32px">${d}</span><span class="muted">${d===1?"day":"days"} within goal</span></div>
+    <div class="track">${dots}</div>${statsHtml(t)}<button class="ghost small" style="align-self:flex-start;padding-inline:0" data-act="health:${t.id}">What improves when you stop ›</button></div>`;
+}
+function miniTrail(s){
+  const r=reachedIdx(s),n=DEST.length,W=300,H=72,xs=DEST.map((_,i)=>20+i*(W-40)/(n-1)),ys=DEST.map((_,i)=>i%2?32:48),pos=posAt(s);
+  const seg=i=>{const dx=(xs[i+1]-xs[i])/2;return `M${xs[i].toFixed(1)} ${ys[i]}C${(xs[i]+dx).toFixed(1)} ${ys[i]} ${(xs[i+1]-dx).toFixed(1)} ${ys[i+1]} ${xs[i+1].toFixed(1)} ${ys[i+1]}`};
+  const pt=(i,f)=>{const dx=(xs[i+1]-xs[i])/2,u=1-f,P=[[xs[i],ys[i]],[xs[i]+dx,ys[i]],[xs[i+1]-dx,ys[i+1]],[xs[i+1],ys[i+1]]],c=q=>u*u*u*P[0][q]+3*u*u*f*P[1][q]+3*u*f*f*P[2][q]+f*f*f*P[3][q];return [c(0),c(1)]};
+  let d="";for(let i=0;i<n-1;i++)d+=seg(i);
+  let walk="";for(let i=0;i<=pos.seg;i++)walk+=i<pos.seg?`<path d="${seg(i)}"/>`:(pos.f>0?`<path d="${seg(i)}" pathLength="100" stroke-dasharray="${(pos.f*100).toFixed(1)} 200"/>`:"");
+  const [mx,my]=pt(pos.seg,pos.f);
+  const deco=[[44,14,0],[92,62,1],[150,22,3],[206,63,2],[262,15,1],[124,64,5],[232,20,6],[58,63,4],[178,62,1],[282,62,0]].map(([x,y,t],k)=>decorItem(t,x,y,k)).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" aria-hidden="true"><defs><clipPath id="mclip"><rect width="${W}" height="${H}" rx="16"/></clipPath></defs><g clip-path="url(#mclip)">
+    <rect width="${W}" height="${H}" fill="#A6DA82"/><ellipse cx="70" cy="18" rx="44" ry="10" fill="#B6E394"/><ellipse cx="226" cy="58" rx="54" ry="10" fill="#B6E394"/>
+    <path d="M${W+6} 6C270 14 250 2 222 10" stroke="#7CCBFF" stroke-width="8" fill="none" stroke-linecap="round"/>${deco}
+    <g fill="none" stroke-linecap="round"><path d="${d}" stroke="#5FB0E0" stroke-width="14"/><path d="${d}" stroke="#A8E0FF" stroke-width="10"/><g stroke="#FFC234" stroke-width="4">${walk}</g></g>
+    ${xs.map((x,i)=>`<circle cx="${x.toFixed(1)}" cy="${ys[i]}" r="${i===r+1?6:4.5}" fill="${i<=r?"#FFD43B":"#FFF8E6"}" stroke="#8B6B4A" stroke-width="2"/>`).join("")}
+    ${DEST[r+1]?`<g transform="translate(${xs[r+1].toFixed(1)} ${ys[r+1]-6})"><path d="M0 0v-17" stroke="#6E4F2E" stroke-width="2"/><path d="M0-17h11l-3 4 3 4H0z" fill="#FF7EB6"/></g>`:""}
+    <g transform="translate(${mx.toFixed(1)} ${(my-14).toFixed(1)})"><path d="M0 10l-5-7h10z" fill="#6C4CF5"/><circle r="8.5" fill="#6C4CF5" stroke="#fff" stroke-width="2.5"/><circle r="2.8" fill="#fff"/></g></g></svg>`;
+}
+function vToday(){
+  const q=quests(),d=qd(),done=q.filter(x=>d[x.id]).length,mood=moodLevel(),s=steps(),r=reachedIdx(s),nx=DEST[r+1];
+  return header("Today")+`${S.demo?`<div class="demo-banner"><span>You're viewing sample data</span><button data-act="own-start">Start my own</button></div>`:""}
+  <div class="buddy" id="buddy"><div id="buddy-svg">${buddy(mood,S.equip.acc)}</div>
+    <div style="display:flex;flex-direction:column;gap:8px;min-width:0"><div class="say">${SAYS[mood]}</div><div class="small" style="font-weight:800">${s} steps · ${esc(DEST[r][0])}</div></div>
+    <button class="trail" data-act="go-journey" aria-label="Open my journey map"><span class="row between small" style="flex-wrap:nowrap"><span>${nx?"Next stop: "+esc(nx[0]):"Cloud Castle reached!"}</span><span class="muted" style="white-space:nowrap">${nx?(nx[1]-s)+" steps ›":"Open map ›"}</span></span>${miniTrail(s)}</button></div>
+  ${escCard()}<div class="qhead"><h2>${L("Today's quests")}</h2><span class="small muted num" style="font-weight:800">${done} of ${q.length}</span></div>
+  ${done===q.length&&q.length?`<div class="alldone">Quest clear! Finn is overjoyed.</div>`:""}
+  <div class="quests">${(ui.allQ?q:q.slice(0,QCAP())).map((x,i)=>`<div class="qwrap"><button class="quest c${i%6} ${d[x.id]?"done":""} ${x.id===ui.justDone?"pop":""}" data-act="q:${x.id}" aria-pressed="${!!d[x.id]}"><span class="qt"><span>${esc(x.t)}</span><small>${esc(x.s)}</small></span><span class="box"></span></button>
+    ${x.custom&&!d[x.id]?`<button class="qx" data-act="delq:${x.custom}" aria-label="Remove quest">Remove</button>`:""}${x.daily&&!d[x.id]?`<button class="qx" data-act="deld:${x.daily}" aria-label="Remove daily quest">Remove</button>`:""}</div>`).join("")}</div>
+  ${q.length>QCAP()?`<button class="ghost small" style="align-self:center" data-act="allq">${ui.allQ?"Show fewer":"Show "+(q.length-QCAP())+" more quests"}</button>`:""}
+  <form class="addq" data-form="addq"><input id="f-addq" name="t" maxlength="60" placeholder="+ Add your own tiny quest" autocomplete="off" aria-label="New quest"><label class="rep"><input type="checkbox" id="f-daily" name="daily"> Daily</label><button class="primary" type="submit">Add</button></form>
+  <div class="card slipcard"><h3>${L("Had a slip, or worried you might?")}</h3><p class="muted">${L("No judgement, nothing lost. Safety info and your clinic, one tap away.")}</p>
+    <div class="row"><button class="primary grow" data-act="slip">${L("Get support now")}</button><button class="mintb" data-act="go-calm">${L("Calm corner")}</button></div></div>
+  ${S.trackers.length?`<h2 style="margin-top:6px">${L("My trackers")}</h2>`+S.trackers.map(vTracker).join(""):""}
+  ${S.trackers.length>1?`<p class="small muted" style="padding:0 6px">Each tracker counts on its own. A slip with one never touches another.</p>`:""}`;
+}
+
+function telHref(p){return "tel:"+String(p).replace(/[^+\d]/g,"")}
+function mapsHref(a){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(a)}
+function vCare(){
+  const c=S.clinic,a=apptInfo(),has=c.phone||c.booking||c.name;let clinic,appt;
+  if(ui.editClinic||!has){
+    clinic=`<div class="card"><h2>${has?"Edit clinic":"Add your clinic"}</h2><p class="muted small">All optional. Add only what you have.</p>
+    <button class="sun" style="align-self:flex-start" data-act="code-sheet">I have a clinic code</button>
+    <form class="form" data-form="clinic">
+      <label>Clinic or hospital<input id="f-cname" name="name" value="${esc(c.name)}" placeholder="e.g. City De-addiction Centre"></label>
+      <label>Doctor<input id="f-cdoc" name="doctor" value="${esc(c.doctor)}" placeholder="e.g. Dr. Rao"></label>
+      <div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">Phone</span>${phoneField("f-ccc","f-cphone",c.cc,c.phone)}</div>
+      <label>Booking link<input id="f-clink" name="booking" type="url" value="${esc(c.booking)}" placeholder="https://…"></label>
+      <label>Address (for directions)<input id="f-caddr" name="address" value="${esc(c.address)}" placeholder="Area, city"></label>
+      <div class="row"><button class="primary" type="submit">Save clinic</button>${has?`<button type="button" data-act="cancel-clinic">Cancel</button>`:""}</div></form></div>`;
+  }else clinic=`<div class="card" style="background:var(--pri-soft)"><div class="row between"><div class="grow"><div class="eyebrow">My clinic</div><h2>${esc(c.name||"My clinic")}</h2>${c.doctor?`<p class="muted">${esc(c.doctor)}</p>`:""}</div><button class="ghost small" data-act="edit-clinic">Edit</button></div>
+    ${c.phone?`<div class="row between"><span class="copyable">${esc(dispPhone(c))}</span><button class="ghost small" data-act="copy">Copy</button></div>`:""}
+    <div class="row">${c.phone?`<a class="btn primary" href="tel:${telFull(c)}">Call</a>`:""}
+      ${c.booking?`<a class="btn sun" href="${esc(c.booking)}" target="_blank" rel="noopener">Book online</a>`:`<button data-act="no-booking">Book online</button>`}
+      ${c.address?`<a class="btn" href="${mapsHref(c.address)}" target="_blank" rel="noopener">Directions</a>`:""}</div>
+    <p class="small muted">Calling or opening the booking page doesn't book by itself. Save the date below once it's confirmed.</p></div>`;
+  if(ui.editAppt||!a||a.arrived||a.past){const missed=a&&a.past&&!a.arrived;
+    appt=`<div class="card"><h2>${missed?"Missed it? Pick a new time":a&&a.arrived?"Book your next visit":"Save your appointment"}</h2>
+    ${missed?`<p class="muted small">It happens. Nothing is lost.</p>`:""}
+    <form class="form" data-form="appt"><label>Date and time<input id="f-appt" name="when" type="datetime-local" required value="${a&&!a.past&&!a.arrived?esc(S.appt.when):""}"></label>
+    <div class="row"><button class="primary" type="submit">I've booked it</button>${ui.editAppt?`<button type="button" data-act="cancel-appt">Cancel</button>`:""}</div></form></div>`;
+  }else appt=`<div class="card"><div class="row between"><div><div class="eyebrow">Next appointment</div><h2>${esc(fmtDate(a.d))}, ${esc(fmtTime(a.d))}</h2></div><button class="ghost small" data-act="edit-appt">Change</button></div>
+    <p class="muted">${a.diff>0?"In "+relTime(a.diff)+". Leave about 45 minutes early.":"Happening now."}</p>
+    <div class="row"><button class="primary" data-act="arrive">I'm here! +5 steps</button>${c.address?`<a class="btn" href="${mapsHref(c.address)}" target="_blank" rel="noopener">Directions</a>`:""}</div>
+    ${a.window?"":`<p class="small muted">Unlocks on the day, 3 hours before.</p>`}</div>`;
+  const meds=`<div class="card"><div class="row between"><h2>My medicines</h2><button class="ghost small" data-act="add-med">${ui.addMed?"Close":"Add"}</button></div>
+    <p class="small muted">Exactly as your doctor prescribed. This app never changes doses.</p>
+    ${ui.addMed?`<form class="form" data-form="med"><label>Medicine name<input id="f-mname" name="name" required placeholder="As on your prescription"></label><label>Time<input id="f-mtime" name="time" type="time" required value="09:00"></label><button class="primary" type="submit">Save medicine</button></form>`:""}
+    ${S.meds.map(m=>`<div class="row between" style="background:var(--bg);border-radius:18px;padding:12px"><div><b>${esc(m.name)}</b><div class="small muted">${esc(m.time)} daily · shows up as a quest</div></div><button class="ghost small" data-act="med-del:${m.id}">Remove</button></div>`).join("")||`<p class="muted">No medicines added.</p>`}</div>`;
+  return header("Care")+clinic+appt+meds+plansBlock()+safetyCheckCard()+patternsBlock()+insightsBlock()+`<div class="card"><div class="eyebrow">For clinics</div><h2>Set patients up in one scan</h2><p class="small muted">Make a QR code with your clinic's name, phone and booking link. Patients scan it once and everything is filled in.</p><button style="align-self:flex-start" data-act="code-make">Make a setup code</button></div>`;
+}
+
+function rewardsBlock(){
+  const got=STICKERS.filter(s=>S.stickers[s[0]]).length,r=reachedIdx(steps());
+  const shopBtn=(cat,k,v)=>{const own=S.owned[k],on=S.equip[cat]===k;if(v.pro&&!S.pro)return `<button class="wide" data-act="pro-sheet">${PROTAG} Pro item</button>`;if(v.pro&&!own)S.owned[k]=true;return `<button class="${on?"mintb":own?"":"sun"} wide" data-act="${cat}:${k}">${on?(cat==="acc"?"Wearing":"In use"):own?(cat==="acc"?"Wear":"Use"):v.price+" seeds"}</button>`};
+  return `<h2 id="rewards" style="margin-top:8px;scroll-margin-top:16px">Reward centre</h2>
+  <div class="stats"><div class="stat"><b class="num">${r+1}</b><span class="small muted">places reached</span></div><div class="stat"><b class="num">${S.showups.length}</b><span class="small muted">days showed up</span></div><div class="stat"><b class="num">${got}</b><span class="small muted">stickers</span></div></div>
+  <p class="small muted" style="padding:0 6px">No streaks to lose. Steps, seeds and stickers never expire, even after a slip.</p>
+  <div class="row between"><h2>Finn's shop</h2><span class="chipstat num">${SEED}${S.seeds}</span></div>
+  <div class="hscroll rewards-strip">${Object.entries(ACCS).map(([k,v])=>`<div class="item">${buddy(2,k)}<b>${v.name}${v.pro?" "+PROTAG:""}</b>${shopBtn("acc",k,v)}</div>`).join("")}</div>
+  <h2>Colour themes</h2>
+  <div class="hscroll rewards-strip">${Object.entries(THEMES).map(([k,v])=>`<div class="item"><div class="swatch" style="background:${v.pri}"></div><b>${v.name}</b>${shopBtn("theme",k,v)}</div>`).join("")}</div>
+  ${journeyStickers()}<div class="row between"><h2>Achievement stickers</h2><span class="small muted num" style="font-weight:800">${got} of ${STICKERS.length}</span></div>
+  <div class="stickers">${STICKERS.map(s=>`<div class="sticker ${S.stickers[s[0]]?"":"off"}"><div class="s" style="background:var(${s[3]})">${S.stickers[s[0]]?s[2]:"?"}</div>${esc(s[1])}</div>`).join("")}</div>
+  <div class="note">Seeds: each quest +2 · open the app each day +5 · clear all quests +10 · new sticker +10 · new place +15 · reach your clinic +10.</div>`;
+}
+function vJourney(){return header("Journey")+journeyBlock()+rewardsBlock()}
+
+let breath={on:false,t:0,timer:null,phase:""};let ripples=0;let bubbles=newBubbles();
+function newBubbles(){return Array.from({length:20},()=>CANDY[Math.floor(Math.random()*CANDY.length)])}
+function vCalm(){
+  const left=bubbles.filter(Boolean).length;
+  return header("Calm")+`<button class="ghost small" style="align-self:flex-start;padding-inline:0" data-act="tab:today">‹ Back to Today</button><p class="muted">Short, optional, stop any time. Either one completes today's calm quest.</p>
+  <div class="card"><div class="row between"><h2>Bubble pop</h2><span class="small muted num" style="font-weight:800" id="bub-left">${left} left</span></div>
+  <p class="small muted">Pop them all. Feel each one.</p>
+  <div class="bubbles">${bubbles.map((c,i)=>c?`<button class="bub" style="background:var(${c})" data-act="bub:${i}" aria-label="Pop bubble"></button>`:`<span></span>`).join("")}</div></div>
+  <div class="card"><div class="row between"><h2>Calm minute</h2><span class="small muted num" id="b-left" style="font-weight:800">${breath.on?(60-breath.t)+"s":"60s"}</span></div>
+  <div class="seg" role="group" aria-label="Breathing pace"><button class="${S.pace!=="short"?"on":""}" data-act="pace:long">Slow · 4 in, 6 out</button><button class="${S.pace==="short"?"on":""}" data-act="pace:short">Short · 3 in, 4 out</button></div>
+  <div class="breath"><div class="circle" id="b-circle"><b id="b-text">${breath.on?esc(breath.phase):"Ready"}</b></div></div>
+  <button class="${breath.on?"":"mintb"} wide" data-act="breath">${breath.on?"Stop":"Start"}</button></div>
+  ${S.pro?`<div class="card"><div class="row between"><h2>Pond ripples</h2>${PROTAG}</div><p class="small muted">Tap the water slowly. Watch each ripple fade before the next. <span class="num" id="rip-n">${ripples}</span> of 20</p><div class="pond" data-act="ripple" role="button" aria-label="Tap to make a ripple"></div></div>`:
+   `<div class="card"><div class="row between"><h2>Pond ripples</h2>${PROTAG}</div><p class="small muted">A slow, soothing tap game for big cravings.</p><button class="primary" style="align-self:flex-start" data-act="pro-sheet">Unlock with Pro</button></div>`}
+  <div class="card"><h2>5-4-3-2-1 grounding</h2><p class="small muted">Brings you back to the room when a craving or worry spikes.</p>
+  <div class="note" style="font-size:16px;font-weight:800">${GROUND[ground]}</div>
+  <div class="row"><button class="mintb" data-act="ground">${ground>=GROUND.length-1?"Start again":"Next"}</button><span class="small muted num">${Math.min(ground+1,5)} of 5</span></div></div>`;
+}
+function breathTick(){
+  breath.t++;const c=document.getElementById("b-circle"),tx=document.getElementById("b-text"),lf=document.getElementById("b-left");const PC=PACE(),cyc=(breath.t-1)%(PC[0]+PC[1]);
+  if(cyc===0){breath.phase="Breathe in";if(c){c.style.transitionDuration=PC[0]+"s";c.style.transform="scale(1)"}buzz(15)}
+  if(cyc===PC[0]){breath.phase="Breathe out";if(c){c.style.transitionDuration=PC[1]+"s";c.style.transform="scale(.6)"}buzz(10)}
+  if(tx)tx.textContent=breath.phase;if(lf)lf.textContent=(60-breath.t)+"s";
+  if(breath.t>=60){stopBreath();finishCalm(document.getElementById("b-circle"))}
+}
+function stopBreath(){clearInterval(breath.timer);breath={on:false,t:0,timer:null,phase:""}}
+function finishCalm(el){sticker("calm");if(!qd().calm)completeQuest("calm",el);else{celebrate(el,"Nice!")}save();render()}
+
+function vMe(){
+  const sw=(k,on,label,sub)=>`<div class="toggle"><div class="grow"><b>${label}</b><p class="small muted">${sub}</p></div><div class="seg" style="min-width:120px"><button class="${on?"on":""}" data-act="set:${k}:1">On</button><button class="${on?"":"on"}" data-act="set:${k}:0">Off</button></div></div>`;
+  return header("Me")+`
+  ${proCard()}
+  <div class="card"><div class="row between"><h2>Quest level</h2>${PROTAG}</div><p class="small muted">How many quests show on Today.</p>
+   <div class="seg">${["gentle","standard","stretch"].map(k=>`<button class="${S.difficulty===k?"on":""}" data-act="${S.pro?"diff:"+k:"pro-sheet"}">${{gentle:"Gentle · 4",standard:"Standard · 6",stretch:"Stretch · 9"}[k]}</button>`).join("")}</div></div>
+  <div class="card"><div class="row between"><h2>What I'm working on</h2><button class="ghost small" data-act="add-tracker">${ui.addTracker?"Close":"Add"}</button></div>
+  ${ui.addTracker?`<form class="form" data-form="tracker"><label>Substance<select id="f-tsub" name="sub">${SUBS.map(s=>`<option>${s}</option>`).join("")}</select></label>
+   <label>Goal<select id="f-tgoal" name="goal"><option value="quit">Stop</option><option value="reduce">Cut down</option></select></label>
+   <label>Daily limit (if cutting down)<input id="f-tlim" name="limit" type="number" min="0" value="3"></label>
+   <label>Start date<input id="f-tstart" name="start" type="date" value="${today()}" max="${today()}"></label>
+   <label>Usual spend per day (optional)<input id="f-tspend" name="spend" type="number" min="0" step="any" inputmode="decimal"></label><label>Usual amount per day (optional)<input id="f-tper" name="per" type="number" min="0" step="any" inputmode="decimal"></label>
+   <p class="small muted">Agree your goal with your clinician.</p><button class="primary" type="submit">Add tracker</button></form>`:""}
+  ${S.trackers.map(t=>`<div class="row between" style="background:var(--bg);border-radius:18px;padding:12px"><div><b>${esc(SN(t))}</b><div class="small muted">${t.goal==="quit"?"Stop":"Cut down to "+t.limit+" a day"} · since ${esc(fmtDate(parseYmd(t.start)))}</div></div><button class="ghost small" data-act="del-tracker:${t.id}">Remove</button></div>`).join("")||`<p class="muted">No trackers yet.</p>`}</div>
+  ${trustedCard()}${langCard()}
+  <div class="card"><h2>Feel</h2>${sw("sound",S.sound,"Sounds","Pops and chimes when you complete things")}${sw("haptic",S.haptic,"Vibration","Buzz on taps. Works in Android browsers; iPhone needs the app version")}${sw("notif",S.notif,"Discreet reminders","Never mention substances or treatment on your lock screen")}</div>
+  <div class="card"><h2>Calm corner</h2><p class="small muted">Bubble pop and a 1-minute breathing round. Also opens from the support card on Today.</p><button class="mintb" style="align-self:flex-start" data-act="go-calm">Open Calm</button></div>
+  <div class="card"><h2>Appearance</h2><div class="seg"><button class="${isDark()?"":"on"}" data-act="mode-set:light">Day</button><button class="${isDark()?"on":""}" data-act="mode-set:dark">Night</button></div></div>
+  <div class="card"><h2>Help numbers</h2>${countrySelect()}${emergRow()}<p class="small muted">Prototype numbers; always confirm your local services.</p></div>
+  ${privacyCard()}
+  <div class="card"><h2>Data</h2>${ui.confirmReset?`<p><b>Clear everything and start fresh?</b> This can't be undone.</p><div class="row"><button class="danger" data-act="reset-yes">Yes, start fresh</button><button data-act="reset-no">Keep my data</button></div>`:
+   `<div class="row"><button data-act="reset-ask">Start fresh</button><button data-act="load-sample">Load sample data</button></div>`}</div>
+  <p class="small muted" style="padding:0 6px">Unhookd prototype. Supports, never replaces, your clinician, prescribed treatment or emergency care.</p>`;
+}
+
+function vOnboard(){
+  const dots=`<div class="dots">${[1,2,3].map(i=>`<i class="${ob.step===i?"on":""}"></i>`).join("")}</div>`;
+  if(ob.step===1)return `<div class="ob">${dots}<div class="brandrow">${LOGO}<div><div class="wm">Unhookd</div><div class="small muted" style="font-weight:700">Recovery that fits an ADHD brain</div></div></div><div class="hero">${buddy(2,"party")}</div>
+    <h1>Recovery isn't one giant task. It's one small step at a time.</h1>
+    <p class="muted">Tiny daily quests, real rewards, and Finn the fish, who cheers every win. Your clinic stays one tap away, and a slip never takes your progress.</p>
+    <button class="primary wide" data-act="ob-next">Let's begin</button><button class="wide" data-act="load-sample">Explore with sample data</button></div>`;
+  if(ob.step===2)return `<div class="ob">${dots}<h1>What are you working on?</h1><p class="muted">Pick one or more. Each gets its own tracker.</p>
+    <div class="form">${SUBS.map(s=>{const p=ob.picks[s];return `<div class="card" style="padding:12px"><div class="row between"><button class="chip ${p?"on":""}" data-act="ob-pick:${s}">${s}</button>
+      ${p?`<div class="seg" style="flex:1;min-width:180px"><button class="${p==="quit"?"on":""}" data-act="ob-goal:${s}:quit">Stop</button><button class="${p==="reduce"?"on":""}" data-act="ob-goal:${s}:reduce">Cut down</button></div>`:""}</div></div>`}).join("")}</div>
+    <button class="primary wide" data-act="ob-next">Continue</button></div>`;
+  return `<div class="ob">${dots}<h1>Let's make reaching your doctor easier</h1><p class="muted">Optional. You can add this later in Care.</p>
+    <form class="form" data-form="ob"><div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">Clinic phone</span>${phoneField("o-cc","o-phone","India|91","")}</div>
+    <label>Booking link<input id="o-link" name="booking" type="url" placeholder="https://…"></label>
+    ${ob.clinic?`<div class="note">Clinic code added: <b>${esc(ob.clinic.name||"your clinic")}</b></div>`:`<button type="button" class="sun" style="align-self:flex-start" data-act="code-sheet">I have a clinic code</button>`}
+    <label class="consent" id="o-consent-l"><input type="checkbox" id="o-consent" name="consent"> <span>I understand Unhookd is a support tool, not treatment or emergency care. My data stays on this phone, and I can delete it any time in Me.</span></label><button class="primary wide" type="submit">Finish</button><button class="wide" type="button" data-act="ob-finish">Skip for now</button></form></div>`;
+}
+function needConsent(){const l=document.getElementById("o-consent-l");if(l){l.classList.add("need");l.scrollIntoView({block:"center"})}toast("Please tick the box to continue");buzz([10,40,10])}
+function finishOnboard(phone,link,cc){
+  const keep={sound:S.sound,haptic:S.haptic};S=blank();Object.assign(S,keep);S.onboarded=true;
+  Object.entries(ob.picks).forEach(([sub,goal],i)=>S.trackers.push({id:"t"+Date.now()+i,sub,goal,start:today(),limit:goal==="reduce"?(sub==="Tobacco"?5:2):0,log:{}}));
+  S.clinic.phone=phone||"";S.clinic.cc=cc||"India|91";S.clinic.booking=link||"";if(ob.clinic)Object.assign(S.clinic,ob.clinic);S.consent=today();sticker("first",true);ob={step:1,picks:{}};tab="today";save();render();dailyOpen();
+}
+
+/* ---------- sheets ---------- */
+function host(){return document.getElementById("sheet-host")}
+function closeSheet(){host().innerHTML="";if(typeof pendingDest!=="undefined"&&pendingDest!=null){const r=pendingDest;pendingDest=null;setTimeout(()=>destSheet(r),300)}}
+function sheet(inner,center){host().innerHTML=`<div class="scrim ${center?"center":""}" data-act="close-sheet">${inner}</div>`;const f=host().querySelector("[data-stop] button:not([disabled]),[data-stop] a");if(f)f.focus({preventScroll:true})}
+function welcome(){
+  sheet(`<div class="welcome" role="dialog" aria-modal="true" aria-labelledby="w-h" data-stop="1">${buddy(3,S.equip.acc)}
+    <h1 id="w-h">Hey, you showed up!</h1><div class="big-xp">+2 steps</div><p class="small" style="font-weight:800">and +5 seeds</p>
+    <p class="muted">That's day ${S.showups.length} of showing up. No streaks here. Every day you open the app counts, forever.</p>
+    <button class="primary wide" data-act="welcome-go">Let's go</button></div>`,true);
+  setTimeout(rain,150);
+}
+let ciSel={};
+function checkinSheet(){
+  const seg=(k,opts)=>`<div class="seg" role="group" aria-label="${k}">${opts.map(o=>`<button class="${ciSel[k]===o?"on":""}" data-act="ci:${k}:${o}">${L(o)}</button>`).join("")}</div>`;
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="ci-h" data-stop="1"><div class="grab"></div><h2 id="ci-h">${L("How are you, really?")}</h2>
+    <div class="mood">${["Low","Okay","Good"].map((m,i)=>`<button class="${ciSel.mood===m?"on":""}" data-act="ci:mood:${m}">${moodFace(i)}${L(m)}</button>`).join("")}</div>
+    <div class="eyebrow">${L("Any cravings?")}</div>${seg("craving",["None","Some","Strong"])}
+    ${ciSel.craving&&ciSel.craving!=="None"?`<div class="eyebrow">What set it off? (optional)</div><div class="chips">${TRIG.map(g=>`<button class="chip ${(ciSel.tags||[]).includes(g)?"on":""}" data-act="ci-tag:${g}">${g}</button>`).join("")}</div>
+    ${S.trackers.length>1?`<div class="eyebrow">Craving for</div><div class="chips">${S.trackers.map(x=>`<button class="chip ${ciSel.sub===x.sub?"on":""}" data-act="ci-sub:${x.sub}">${esc(SN(x))}</button>`).join("")}</div>`:""}
+    ${S.pro?`<div class="eyebrow">How intense? ${PROTAG}</div><div class="seg">${[1,2,3,4,5].map(n=>`<button class="${ciSel.i===n?"on":""}" data-act="ci-int:${n}">${n}</button>`).join("")}</div><div class="row between small muted"><span>Mild</span><span>Intense</span></div>
+    <div class="eyebrow">What helped? ${PROTAG}</div><div class="chips">${HELPED.map(h=>`<button class="chip ${(ciSel.helped||[]).includes(h)?"on":""}" data-act="ci-help:${h}">${h}</button>`).join("")}</div>`:
+    `<button class="ghost small" style="align-self:flex-start;padding-inline:0" data-act="pro-sheet">${PROTAG} Rate intensity and log what helped</button>`}`:""}
+    <button class="primary wide" data-act="ci-save">${L("Done")}</button>
+    <button class="ghost" data-act="close-sheet">${L("Not now")}</button></div>`);
+}
+function strongSheet(){
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="st-h" data-stop="1"><div class="grab"></div><h2 id="st-h">${L("Strong craving? You noticed it. That counts.")}</h2>
+    <p class="muted">${L("Cravings rise and fall like a wave, often within minutes. Pick one:")}</p>${sayBtn()}
+    ${plansInline()}
+    <button class="mintb wide" data-act="go-calm">${L("Pop bubbles or breathe")}</button>
+    ${S.clinic.phone?`<a class="btn primary wide" href="tel:${telFull(S.clinic)}">${L("Call my clinic")}</a><p class="small muted">${esc(dispPhone(S.clinic))}</p>`:""}
+    ${S.trusted.phone?`<button class="wide" data-act="hello">Message ${esc((S.trusted.name||"my person").replace(/ \(sample\)/,""))}</button>`:""}
+    ${escalation()?`<div class="card esc">${escBody(escalation())}</div>`:""}
+    <button class="ghost" data-act="close-sheet">${L("I'm okay for now")}</button></div>`);
+}
+function freeSheet(quest){
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="fr-h" data-stop="1"><div class="grab"></div><h2 id="fr-h">${esc(quest.t)}?</h2>
+    <p class="muted">Honest answers only. Either way, nothing you've earned is lost.</p>
+    <button class="mintb wide" data-act="free-yes:${quest.id}">Yes!</button><button class="wide" data-act="free-no:${quest.tid}">Not today</button></div>`);
+}
+function safetyFor(sub){
+  if(sub==="Alcohol")return `<p><b>If you were drinking heavily</b>, stopping again suddenly can cause dangerous withdrawal. Talk to your doctor before stopping on your own.</p><p><b>Get emergency help now</b> for a seizure, seeing or hearing things, confusion, severe shaking, or a racing heart with fever.</p>`;
+  if(sub==="Tobacco")return `<p>A tobacco slip isn't dangerous in itself. Cravings usually pass within minutes. If you use nicotine replacement, keep using it as your clinician advised.</p>`;
+  return `<p>If you feel very unwell, confused, have chest pain or trouble breathing, or someone can't be woken, call emergency services now.</p><p>Avoid mixing substances, and don't use alone.</p>`;
+}
+let slipSel=null;
+function openSlip(id){slipSel=id||(S.trackers[0]&&S.trackers[0].id)||null;drawSlip()}
+function drawSlip(){
+  const t=S.trackers.find(x=>x.id===slipSel),c=S.clinic;
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="slip-h" data-stop="1"><div class="grab"></div>
+    <h1 id="slip-h">${L("You haven't lost your progress.")}</h1><p class="muted">${L("Your steps, seeds and stickers all stay. Let's focus on what you need now.")}</p>${sayBtn()}
+    ${escalation()?`<div class="card esc">${escBody(escalation())}</div>`:""}
+    ${S.trackers.length>1?`<div class="chips">${S.trackers.map(x=>`<button class="chip ${x.id===slipSel?"on":""}" data-act="slip-sel:${x.id}">${esc(SN(x))}</button>`).join("")}</div>`:""}
+    <div class="card" style="background:var(--lilac);color:var(--candy-ink)"><div class="eyebrow" style="color:inherit">${L("Stay safe")}${t?" · "+esc(SN(t)):""}</div>${S.lang==="hi"?(SAFE_HI[t&&t.sub]||SAFE_HI.Other):safetyFor(t&&t.sub)}
+      ${t&&t.sub==="Alcohol"?`<button class="chip ${S.heavy===today()?"on":""}" style="align-self:flex-start" data-act="heavy">I've been drinking heavily for days</button>`:""}</div>
+    ${plansInline()}<div class="card"><div class="eyebrow">${L("Reach help")}</div>
+      ${c.phone?`<div class="row between"><span>${esc(c.name||"My clinic")}<br><span class="copyable">${esc(dispPhone(c))}</span></span><a class="btn primary" href="tel:${telFull(c)}">Call</a></div>`:`<p class="small muted">No clinic saved yet. Add it in Care.</p>`}
+      <div class="hr"></div>${emergRow()}
+      ${S.trusted.phone?`<div class="hr"></div><div class="row between"><span>${esc(S.trusted.name)}<br><span class="small muted">Your trusted person</span></span><button data-act="hello">Message</button></div>`:""}
+      <p class="small muted">If calling doesn't start from this page, dial the number shown.</p></div>
+    ${t&&t.goal==="quit"?`<div class="card" style="background:var(--mint);color:var(--candy-ink)"><div class="eyebrow" style="color:inherit">When you're ready</div>
+      <p>Only your ${esc(DISC()?SN(t):t.sub.toLowerCase())} day count starts again${S.trackers.length>1?". Your other trackers are untouched":""}. Your journey map never goes backwards, and coming back earns the "Came back" sticker.</p>
+      <button class="primary wide" data-act="slip-restart:${t.id}">Start my ${esc(DISC()?SN(t):t.sub.toLowerCase())} count again</button></div>`:
+      t?`<div class="note">Logging use is part of your cut-down plan. Nothing resets.</div>`:""}
+    <button class="ghost" data-act="close-sheet">${L("Close")}</button></div>`);
+}
+
+/* ---------- phone: country codes ---------- */
+const CC=("Afghanistan|93;Åland Islands|358;Albania|355;Algeria|213;American Samoa|1684;Andorra|376;Angola|244;Anguilla|1264;Antigua and Barbuda|1268;Argentina|54;Armenia|374;Aruba|297;Australia|61;Austria|43;Azerbaijan|994;"+
+"Bahamas|1242;Bahrain|973;Bangladesh|880;Barbados|1246;Belarus|375;Belgium|32;Belize|501;Benin|229;Bermuda|1441;Bhutan|975;Bolivia|591;Bosnia and Herzegovina|387;Botswana|267;Brazil|55;British Virgin Islands|1284;Brunei|673;Bulgaria|359;Burkina Faso|226;Burundi|257;"+
+"Cambodia|855;Cameroon|237;Canada|1;Cape Verde|238;Caribbean Netherlands|599;Cayman Islands|1345;Central African Republic|236;Chad|235;Chile|56;China|86;Christmas Island|61;Cocos (Keeling) Islands|61;Colombia|57;Comoros|269;Congo|242;Congo (DRC)|243;Cook Islands|682;Costa Rica|506;Côte d'Ivoire|225;Croatia|385;Cuba|53;Curaçao|599;Cyprus|357;Czechia|420;"+
+"Denmark|45;Djibouti|253;Dominica|1767;Dominican Republic|1809;Ecuador|593;Egypt|20;El Salvador|503;Equatorial Guinea|240;Eritrea|291;Estonia|372;Eswatini|268;Ethiopia|251;"+
+"Falkland Islands|500;Faroe Islands|298;Fiji|679;Finland|358;France|33;French Guiana|594;French Polynesia|689;Gabon|241;Gambia|220;Georgia|995;Germany|49;Ghana|233;Gibraltar|350;Greece|30;Greenland|299;Grenada|1473;Guadeloupe|590;Guam|1671;Guatemala|502;Guernsey|44;Guinea|224;Guinea-Bissau|245;Guyana|592;"+
+"Haiti|509;Honduras|504;Hong Kong|852;Hungary|36;Iceland|354;India|91;Indonesia|62;Iran|98;Iraq|964;Ireland|353;Isle of Man|44;Israel|972;Italy|39;Jamaica|1876;Japan|81;Jersey|44;Jordan|962;"+
+"Kazakhstan|7;Kenya|254;Kiribati|686;Kosovo|383;Kuwait|965;Kyrgyzstan|996;Laos|856;Latvia|371;Lebanon|961;Lesotho|266;Liberia|231;Libya|218;Liechtenstein|423;Lithuania|370;Luxembourg|352;"+
+"Macao|853;Madagascar|261;Malawi|265;Malaysia|60;Maldives|960;Mali|223;Malta|356;Marshall Islands|692;Martinique|596;Mauritania|222;Mauritius|230;Mayotte|262;Mexico|52;Micronesia|691;Moldova|373;Monaco|377;Mongolia|976;Montenegro|382;Montserrat|1664;Morocco|212;Mozambique|258;Myanmar|95;"+
+"Namibia|264;Nauru|674;Nepal|977;Netherlands|31;New Caledonia|687;New Zealand|64;Nicaragua|505;Niger|227;Nigeria|234;Niue|683;Norfolk Island|672;North Korea|850;North Macedonia|389;Northern Mariana Islands|1670;Norway|47;Oman|968;"+
+"Pakistan|92;Palau|680;Palestine|970;Panama|507;Papua New Guinea|675;Paraguay|595;Peru|51;Philippines|63;Poland|48;Portugal|351;Puerto Rico|1787;Qatar|974;Réunion|262;Romania|40;Russia|7;Rwanda|250;"+
+"Saint Barthélemy|590;Saint Helena|290;Saint Kitts and Nevis|1869;Saint Lucia|1758;Saint Martin|590;Saint Pierre and Miquelon|508;Saint Vincent and the Grenadines|1784;Samoa|685;San Marino|378;São Tomé and Príncipe|239;Saudi Arabia|966;Senegal|221;Serbia|381;Seychelles|248;Sierra Leone|232;Singapore|65;Sint Maarten|1721;Slovakia|421;Slovenia|386;Solomon Islands|677;Somalia|252;South Africa|27;South Korea|82;South Sudan|211;Spain|34;Sri Lanka|94;Sudan|249;Suriname|597;Svalbard and Jan Mayen|47;Sweden|46;Switzerland|41;Syria|963;"+
+"Taiwan|886;Tajikistan|992;Tanzania|255;Thailand|66;Timor-Leste|670;Togo|228;Tokelau|690;Tonga|676;Trinidad and Tobago|1868;Tunisia|216;Turkey|90;Turkmenistan|993;Turks and Caicos Islands|1649;Tuvalu|688;"+
+"Uganda|256;Ukraine|380;United Arab Emirates|971;United Kingdom|44;United States|1;Uruguay|598;US Virgin Islands|1340;Uzbekistan|998;Vanuatu|678;Vatican City|379;Venezuela|58;Vietnam|84;Wallis and Futuna|681;Western Sahara|212;Yemen|967;Zambia|260;Zimbabwe|263")
+  .split(";").map(s=>{const i=s.lastIndexOf("|");return {n:s.slice(0,i),c:s.slice(i+1)}});
+function phoneField(selId,numId,cc,num){
+  const cur=cc||"India|91";
+  return `<div class="phone"><select id="${selId}" name="cc" aria-label="Country code">${CC.map(x=>{const v=x.n+"|"+x.c;return `<option value="${esc(v)}" ${v===cur?"selected":""}>+${x.c} ${esc(x.n)}</option>`}).join("")}</select>
+  <input id="${numId}" name="phone" type="tel" inputmode="tel" autocomplete="tel-national" value="${esc(num||"")}" placeholder="Phone number" aria-label="Phone number"></div>`;
+}
+function ccCode(cl){const s=cl.cc||"India|91";return s.slice(s.lastIndexOf("|")+1)}
+function telFull(cl){const raw=String(cl.phone||"").trim(),d=raw.replace(/[^\d]/g,"");return raw.startsWith("+")?"+"+d:"+"+ccCode(cl)+d.replace(/^0+/,"")}
+function dispPhone(cl){const raw=String(cl.phone||"").trim();return raw.startsWith("+")?raw:"+"+ccCode(cl)+" "+raw.replace(/^0+/,"")}
+
+/* ---------- learn: picture stories ---------- */
+const INK="#1A1530";
+const PIC={
+  brain:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><g transform="rotate(-8 34 34)"><rect x="16" y="16" width="34" height="34" rx="4" fill="#FFD43B"/><path d="M22 28h20M22 36h14" stroke="${INK}" stroke-width="3" stroke-linecap="round"/></g><g transform="rotate(10 160 104)"><rect x="146" y="90" width="32" height="32" rx="4" fill="#B6E84C"/><path d="M152 102h18M152 110h12" stroke="${INK}" stroke-width="3" stroke-linecap="round"/></g><circle cx="76" cy="68" r="26" fill="#FF9EC7"/><circle cx="100" cy="54" r="30" fill="#FF9EC7"/><circle cx="126" cy="68" r="26" fill="#FF9EC7"/><circle cx="88" cy="92" r="24" fill="#FF9EC7"/><circle cx="114" cy="92" r="24" fill="#FF9EC7"/><path d="M100 30v84M80 56q10 8 0 18M120 56q-10 8 0 18M86 98q14-6 28 0" stroke="#E2669F" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="164" cy="34" r="18" fill="#fff" stroke="${INK}" stroke-width="3"/><path d="M164 24v10l7 5" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M24 100l8-14 5 10 8-14" stroke="#6C4CF5" stroke-width="4" fill="none" stroke-linejoin="round" stroke-linecap="round"/></svg>`,
+  list:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><rect x="14" y="16" width="70" height="108" rx="10" fill="#fff" opacity=".75"/><path d="M24 30h50M24 42h44M24 54h50M24 66h38M24 78h50M24 90h42M24 102h48M24 114h30" stroke="#C9C3D9" stroke-width="5" stroke-linecap="round"/><path d="M92 70h20m-8-8 8 8-8 8" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="120" y="32" width="68" height="76" rx="16" fill="#fff"/><circle cx="154" cy="62" r="18" fill="#5EE0B5"/><path d="M145 62l6 6 12-12" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M136 94h36" stroke="${INK}" stroke-width="4" stroke-linecap="round"/></svg>`,
+  calendar:()=>{let g="";for(let r=0;r<3;r++)for(let c=0;c<4;c++){const x=58+c*22,y=70+r*20,hot=r===1&&c===2;g+=`<circle cx="${x}" cy="${y}" r="${hot?9:6}" fill="${hot?"#FF7EB6":"#E3DFEC"}"/>`}
+    return `<svg viewBox="0 0 200 140" aria-hidden="true"><rect x="40" y="26" width="104" height="104" rx="14" fill="#fff"/><path d="M40 40a14 14 0 0 1 14-14h76a14 14 0 0 1 14 14v12H40z" fill="#6C4CF5"/><path d="M64 18v18M120 18v18" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>${g}<g transform="translate(160 40) rotate(15)"><path d="M0-18q14 0 14 18v10l5 6H-19l5-6V0q0-18 14-18z" fill="#FFD43B" stroke="${INK}" stroke-width="3"/><circle cy="20" r="4" fill="${INK}"/></g><path d="M182 22q8 10 0 22M190 14q12 18 0 36" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`},
+  wave:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><circle cx="168" cy="26" r="14" fill="#FFD43B"/><path d="M0 120C40 120 60 40 100 36s60 84 100 84v20H0z" fill="#6EC6FF"/><path d="M0 130C40 130 60 56 100 52s60 78 100 78" stroke="#fff" stroke-width="4" fill="none" opacity=".75"/><g font-family="Nunito,sans-serif" font-weight="800" font-size="13" fill="${INK}"><text x="14" y="98">builds</text><text x="80" y="26">peaks</text><text x="150" y="98">fades</text></g></svg>`,
+  timer:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><rect x="90" y="8" width="20" height="10" rx="3" fill="${INK}"/><circle cx="100" cy="74" r="50" fill="#fff" stroke="#6C4CF5" stroke-width="10"/><path d="M100 74V42" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><path d="M100 74l20 12" stroke="#FF7EB6" stroke-width="5" stroke-linecap="round"/><circle cx="100" cy="74" r="6" fill="${INK}"/><text x="100" y="112" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="800" font-size="14" fill="${INK}">10:00</text></svg>`,
+  bubbles:()=>`<svg viewBox="0 0 200 140" aria-hidden="true">${[[60,82,30,"#FF7EB6"],[114,58,24,"#FFD43B"],[142,100,28,"#B9A4FF"],[96,112,16,"#5EE0B5"],[164,38,14,"#6EC6FF"],[38,34,12,"#B6E84C"]].map(([x,y,r,c])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/><circle cx="${x-r*.35}" cy="${y-r*.35}" r="${r*.25}" fill="#fff" opacity=".8"/>`).join("")}</svg>`,
+  call:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><rect x="70" y="10" width="60" height="120" rx="14" fill="${INK}"/><rect x="76" y="22" width="48" height="94" rx="8" fill="#fff"/><path d="M100 88c-14-10-20-18-20-26a10 10 0 0 1 20-2 10 10 0 0 1 20 2c0 8-6 16-20 26z" fill="#FF7EB6"/><path d="M146 52q10 18 0 36M156 44q16 26 0 52M54 52q-10 18 0 36M44 44q-16 26 0 52" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`,
+  path:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><path d="M0 140V100q50-22 100-8t100-18v66z" fill="#8FD39B"/><path d="M26 140C46 116 18 102 68 94s72-8 72-32 28-30 38-36" stroke="#FFF3C4" stroke-width="16" fill="none" stroke-linecap="round"/><path d="M178 36V8" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><path d="M178 8h18l-6 7 6 7h-18z" fill="#FF7EB6"/><circle cx="92" cy="90" r="10" fill="#6C4CF5"/><circle cx="89" cy="88" r="2" fill="#fff"/><circle cx="95" cy="88" r="2" fill="#fff"/><path d="M112 76l10-6m-8-4 8 4-2 8" stroke="${INK}" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  shield:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><path d="M100 10l46 16v36c0 32-22 56-46 68-24-12-46-36-46-68V26z" fill="#5EE0B5" stroke="${INK}" stroke-width="4"/><path d="M100 46v40M80 66h40" stroke="#fff" stroke-width="12" stroke-linecap="round"/></svg>`,
+  alert:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><path d="M100 10l46 16v36c0 32-22 56-46 68-24-12-46-36-46-68V26z" fill="#FFD43B" stroke="${INK}" stroke-width="4"/><path d="M100 40v34" stroke="${INK}" stroke-width="10" stroke-linecap="round"/><circle cx="100" cy="94" r="7" fill="${INK}"/></svg>`,
+  sos:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><rect x="66" y="8" width="68" height="124" rx="14" fill="${INK}"/><rect x="73" y="20" width="54" height="98" rx="8" fill="#fff"/><text x="100" y="62" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="800" font-size="24" fill="${INK}">${emerg()||"SOS"}</text><circle cx="100" cy="92" r="14" fill="#3DBB6B"/><path d="M93 85q0 14 14 14l3-5-5-3-2 2q-5-2-6-6l2-2-3-5z" fill="#fff"/></svg>`,
+  moon:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><path d="M78 14a32 32 0 1 0 38 42 26 26 0 1 1-38-42z" fill="#FFD43B"/><circle cx="146" cy="24" r="3" fill="${INK}"/><circle cx="166" cy="50" r="2.5" fill="${INK}"/><circle cx="34" cy="40" r="3" fill="${INK}"/><text x="132" y="78" font-family="Nunito,sans-serif" font-weight="800" font-size="18" fill="${INK}">z z</text><rect x="36" y="96" width="128" height="24" rx="10" fill="#fff"/><rect x="40" y="82" width="42" height="18" rx="9" fill="#6EC6FF"/><path d="M40 120v14M160 120v14" stroke="${INK}" stroke-width="5" stroke-linecap="round"/></svg>`,
+  alarm:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><circle cx="64" cy="30" r="14" fill="#FF7EB6" stroke="${INK}" stroke-width="4"/><circle cx="136" cy="30" r="14" fill="#FF7EB6" stroke="${INK}" stroke-width="4"/><circle cx="100" cy="76" r="46" fill="#FFD43B" stroke="${INK}" stroke-width="4"/><circle cx="100" cy="76" r="34" fill="#fff"/><path d="M100 76V52M100 76l14 8" stroke="${INK}" stroke-width="5" stroke-linecap="round"/><path d="M72 118l-10 14M128 118l10 14" stroke="${INK}" stroke-width="5" stroke-linecap="round"/></svg>`,
+  coffee:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><path d="M72 44q-8-10 0-20M92 44q-8-10 0-20M112 44q-8-10 0-20" stroke="${INK}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M50 54h80v40a30 30 0 0 1-30 30H80a30 30 0 0 1-30-30z" fill="#fff" stroke="${INK}" stroke-width="4"/><path d="M54 66h72" stroke="#C49A6C" stroke-width="10"/><path d="M130 64h10a14 14 0 0 1 0 28h-10" stroke="${INK}" stroke-width="4" fill="none"/><circle cx="164" cy="30" r="18" fill="#fff" stroke="${INK}" stroke-width="3"/><path d="M164 20v10h8" stroke="${INK}" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`,
+  screen:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><rect x="70" y="10" width="60" height="120" rx="14" fill="${INK}"/><rect x="76" y="22" width="48" height="94" rx="8" fill="#2B2D52"/><path d="M96 50a14 14 0 1 0 16 18 11 11 0 1 1-16-18z" fill="#FFD43B"/><text x="100" y="100" text-anchor="middle" font-family="Nunito,sans-serif" font-weight="800" font-size="12" fill="#fff">30 min</text><path d="M40 30l120 90" stroke="#FF7EB6" stroke-width="8" stroke-linecap="round" opacity=".9"/></svg>`,
+  quiz:()=>`<svg viewBox="0 0 200 140" aria-hidden="true"><rect x="30" y="16" width="140" height="92" rx="24" fill="#fff"/><path d="M70 106l-10 24 32-24z" fill="#fff"/><text x="100" y="88" text-anchor="middle" font-family="'Baloo 2',Nunito,sans-serif" font-weight="800" font-size="66" fill="#6C4CF5">?</text><circle cx="172" cy="20" r="10" fill="#FFD43B"/><circle cx="22" cy="112" r="8" fill="#FF7EB6"/></svg>`,
+  plant:()=>buddy(3,S.equip.acc)
+};
+const STORIES=[
+  {id:"adhd",t:"Why recovery feels harder with ADHD",short:"Why it feels harder with ADHD",bg:"#BFE3FF",deep:"#1F6FC4",pic:"brain",slides:[
+    {pic:"brain",h:"Your brain isn't lazy",t:"ADHD affects memory, planning and getting started. Recovery asks for exactly those skills."},
+    {pic:"list",h:"One step beats a long list",t:"Keep just one next step in view. That's why Today shows small quests, not a big plan."},
+    {pic:"calendar",h:"Make time visible",t:"Put appointments where you'll see them, with a 'leave now' reminder."},
+    {pic:"plant",h:"Missed something? Restart small",t:"No catching up needed. Pick one tiny quest and go."}]},
+  {id:"craving",t:"Riding out a craving",short:"Riding out a craving",bg:"#BDF3E0",deep:"#11845A",pic:"wave",slides:[
+    {pic:"wave",h:"Cravings are waves",t:"They build, peak and fade. Many pass within minutes if you don't feed them."},
+    {pic:"timer",h:"Delay 10 minutes",t:"Tell yourself: not for 10 minutes. Set a timer and wait it out."},
+    {pic:"bubbles",h:"Keep your hands busy",t:"Move, change rooms, or pop bubbles in Calm."},
+    {pic:"call",h:"Reach out",t:"Call your clinic or someone you trust. You don't have to ride it alone."}]},
+  {id:"slip",t:"After a slip",short:"After a slip",bg:"#DDF5B0",deep:"#5B4BC4",pic:"path",slides:[
+    {pic:"path",h:"A slip isn't the end of the road",t:"Slips are common in recovery. They don't erase what you've learned."},
+    {pic:"shield",h:"Safety first",t:"Check the safety signs for what you used. Get help if something feels wrong."},
+    {pic:"call",h:"Tell your clinician",t:"They can adjust your plan. That's their job, not a judgement."},
+    {pic:"plant",h:"Restart when you're ready",t:"Your steps, seeds and stickers always stay."}]},
+  {id:"withdrawal",t:"Alcohol withdrawal: when to get help",short:"Alcohol withdrawal: when to get help",bg:"#FFD0E4",deep:"#B0204F",pic:"alert",slides:[
+    {pic:"shield",h:"Stopping heavy drinking can be risky",t:"If you've been drinking heavily or daily, talk to a doctor before stopping on your own."},
+    {pic:"alert",h:"Know the emergency signs",t:"A seizure (fit), seeing or hearing things, confusion, severe shaking, or a racing heart with sweating and fever."},
+    {pic:"sos",h:"Call emergency services right away",t:"Don't wait it out alone. Emergency help is the right call."}]},
+  {id:"sleep",t:"Sleep in early recovery",short:"Sleep in early recovery",bg:"#E2D8FF",deep:"#2B2D52",pic:"moon",slides:[
+    {pic:"moon",h:"Sleep is often off at first",t:"It usually gets better with time. Poor sleep can make cravings feel stronger."},
+    {pic:"alarm",h:"Same wake-up time daily",t:"Even after a bad night. It resets your body clock fastest."},
+    {pic:"coffee",h:"Caffeine before midday",t:"Coffee, tea and energy drinks after lunch can keep you up."},
+    {pic:"screen",h:"Screens away 30 minutes before bed",t:"If sleep stays poor, tell your clinician. Don't self-medicate."}]},
+  {id:"boredom",pro:true,t:"Boredom, urges and the ADHD brain",short:"Boredom and urges",bg:"#D6F5FF",deep:"#1F6FC4",pic:"timer",slides:[
+    {pic:"brain",h:"Boredom hits harder with ADHD",t:"An under-stimulated ADHD brain looks for a quick hit. That's often when urges show up."},
+    {pic:"list",h:"Plan your boring hours",t:"Pick one easy, interesting thing for the times you know drag, like a podcast, a walk or a game."},
+    {pic:"bubbles",h:"Make the next 10 minutes interesting",t:"Change the scene, move your body, or pop bubbles in Calm until the urge passes."}]},
+  {id:"feelings",pro:true,t:"Riding big feelings",short:"Riding big feelings",bg:"#FFE3EC",deep:"#B0204F",pic:"wave",slides:[
+    {pic:"wave",h:"Feelings come in waves too",t:"Anger, rejection and sadness can feel huge with ADHD. Like cravings, they peak and pass."},
+    {pic:"shield",h:"Name it to tame it",t:"Saying 'I feel rejected' out loud or in your head can take some of the heat out."},
+    {pic:"call",h:"Reach out before you reach for it",t:"Text someone you trust or call your clinic when a feeling starts to pull you toward using."}]},
+  {id:"quiz",quiz:true,t:"Myth or fact?",short:"Myth or fact? Quick quiz",bg:"#FFE998",deep:"#6C4CF5",pic:"quiz",slides:[
+    {quiz:true,pic:"path",q:"A slip means you've failed recovery.",a:"Myth",why:"Slips are common. Coming back is part of recovery."},
+    {quiz:true,pic:"wave",q:"Cravings often fade within minutes if you wait.",a:"Fact",why:"They rise and fall like a wave."},
+    {quiz:true,pic:"calendar",q:"ADHD can make appointments harder to keep.",a:"Fact",why:"Memory and time-planning differences make it harder. Reminders help."},
+    {quiz:true,pic:"alert",q:"Stopping heavy drinking suddenly is always safe.",a:"Myth",why:"It can cause dangerous withdrawal. Talk to a doctor first."}]}
+];
+function suggested(){
+  const ci=S.checkins[today()];
+  if(ci&&ci.craving==="Strong")return "craving";
+  if(S.slips.some(s=>daysSince(s.date)<=7))return "slip";
+  if(S.trackers.some(t=>t.sub==="Alcohol")&&!S.read.withdrawal)return "withdrawal";
+  const un=STORIES.find(s=>!S.read[s.id]);return un?un.id:"craving";
+}
+function vLearn(){
+  const readN=STORIES.filter(s=>S.read[s.id]&&!s.pro).length,sg=STORIES.find(s=>s.id===suggested());
+  return header("Learn")+`<p class="muted">1-minute picture stories. Tap one to start.</p>
+  <div class="qhead"><h2>Today's insights</h2><span class="small muted num" style="font-weight:800">${readN} of ${STORIES.filter(s=>!s.pro).length} read</span></div>
+  <div class="hscroll">${STORIES.map(s=>{const r=S.read[s.id];return `<button class="ins ${r?"read":""}" data-act="story:${s.id}" aria-label="${esc(s.t)}${r?" (read)":""}"><span class="in" style="background:${s.bg}"><span class="pill">${s.pro?"PRO":s.quiz?"Quiz":"1 min"}</span>${r?`<span class="tick">${CHECK}</span>`:`<span style="height:18px"></span>`}<b>${esc(s.short)}</b>${PIC[s.pic]()}</span></button>`}).join("")}</div>
+  <h2>Suggested for you</h2>
+  <div class="sugg" style="background:${sg.deep}"><div style="display:flex;flex-direction:column;gap:12px;min-width:0"><h2>${esc(sg.t)}</h2>
+    <ul>${sg.slides.slice(0,3).map(x=>`<li><i></i>${esc(x.h||x.q)}</li>`).join("")}</ul>
+    <button class="btn" data-act="story:${sg.id}">${S.read[sg.id]?"Read again":"Start"} · 1 min</button></div><div>${PIC[sg.pic]()}</div></div>
+  <div class="note">Reading one story completes today's Learn quest. Read all ${STORIES.filter(s=>!s.pro).length} free stories to unlock the Bookworm sticker.</div>
+  <p class="small muted" style="padding:0 6px">Sample content for this prototype. Final stories will be reviewed by a qualified clinician, with references.</p>`;
+}
+let story=null;
+function openStory(id){const st=STORIES.find(x=>x.id===id);if(st&&st.pro&&!S.pro){proSheet("More stories come with Pro");return}story={id,i:0,ans:{}};buzz(10);sfx("tick");drawStory()}
+function drawStory(){
+  const st=STORIES.find(s=>s.id===story.id),sl=st.slides[story.i],last=story.i===st.slides.length-1;
+  const ans=sl.quiz?story.ans[story.i]:null,canNext=!sl.quiz||!!ans;
+  const body=sl.quiz?`<div class="eyebrow">Myth or fact? · ${story.i+1} of ${st.slides.length}</div><h2>${esc(sl.q)}</h2>
+      ${ans?`<div class="verdict ${ans===sl.a?"ok":"no"}">${ans===sl.a?"Correct!":"Not quite."} It's a ${sl.a.toLowerCase()}. ${esc(sl.why)}</div>`:
+      `<div class="qopts"><button class="sun" data-act="st-ans:Myth">Myth</button><button class="mintb" data-act="st-ans:Fact">Fact</button></div>`}`
+    :`<h2>${esc(sl.h)}</h2><p class="muted">${esc(sl.t)}</p>`;
+  host().innerHTML=`<div class="story" role="dialog" aria-modal="true" aria-label="${esc(st.t)}"><div class="wrap">
+    <div class="bars" aria-hidden="true">${st.slides.map((_,k)=>`<i class="${k<=story.i?"on":""}"></i>`).join("")}</div>
+    <div class="row between" style="flex-wrap:nowrap"><span class="eyebrow" style="min-width:0">${esc(st.t)}</span><span class="row" style="gap:8px;flex-wrap:nowrap"><button class="iconbtn" data-act="say" aria-label="Read aloud">${SPK}</button><button class="iconbtn" data-act="st-close" aria-label="Close story">${XICON}</button></span></div>
+    <div class="stage" style="background:${st.bg}"><div class="pic">${PIC[sl.pic||st.pic]()}</div>
+      ${sl.quiz?"":`<div class="tapzones"><button data-act="st-prev" aria-label="Previous"></button><button data-act="st-next" aria-label="Next"></button></div>`}
+      <div class="txt">${body}<div class="row between">${story.i>0?`<button class="ghost" data-act="st-prev">Back</button>`:"<span></span>"}
+        ${last?`<button class="primary" data-act="st-done">Finish</button>`:`<button class="primary" data-act="st-next">Next</button>`}</div></div></div></div></div>`;
+}
+function storyNext(){
+  if(!story)return;const st=STORIES.find(s=>s.id===story.id),sl=st.slides[story.i];
+  if(sl.quiz&&!story.ans[story.i]){toast("Pick Myth or Fact first");buzz([10,40,10]);return}
+  if(story.i>=st.slides.length-1){finishStory();return}
+  story.i++;buzz(6);drawStory();
+}
+function storyAnswer(choice,el){
+  const st=STORIES.find(s=>s.id===story.id),sl=st.slides[story.i];if(story.ans[story.i])return;
+  story.ans[story.i]=choice;
+  if(choice===sl.a){const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top,30,8);sfx("pop");buzz(25)}else{sfx("tick");buzz([10,40,10])}
+  drawStory();
+}
+function finishStory(){
+  const id=story.id,first=!S.read[id];story=null;closeSheet();
+  S.read[id]=today();if(STORIES.filter(s=>!s.pro).every(s=>S.read[s.id]))sticker("reader");
+  if(!qd().learn)completeQuest("learn",null);
+  else if(first){gain(0,2);celebrate(null,"+2 seeds")}else celebrate(null,"Nice!");
+  save();render();
+}
+
+/* ---------- journey map ---------- */
+const DEST=[["Base Camp",0],["Sunflower Meadow",5],["Rainbow Bridge",12],["Crystal Lake",22],["Whispering Forest",35],["Misty Waterfall",55],["Lantern Village",80],["Snowcap Peak",110],["Cloud Castle",150]];
+const SEG=140,MW=340,MH=80+SEG*(DEST.length-1)+110;
+function creditDays(){
+  S.jcred=S.jcred||{};const td=today();
+  S.trackers.forEach(t=>{const c=S.jcred[t.id]||(S.jcred[t.id]={});
+    if(t.goal==="quit"){const d=parseYmd(t.start);let n=0;while(ymd(d)<td&&n<600){c[ymd(d)]=1;d.setDate(d.getDate()+1);n++}}
+    else Object.keys(t.log).forEach(k=>{if(k>=t.start&&k<td&&t.log[k]<=t.limit)c[k]=1})});
+}
+function steps(){creditDays();let c=0;Object.values(S.jcred).forEach(o=>c+=Object.keys(o).length);return S.stats.quests+S.showups.length*2+c+(S.stats.arrivals||0)*5}
+function reachedIdx(s){let r=0;DEST.forEach((d,i)=>{if(s>=d[1])r=i});return r}
+function nodePt(i){return {x:i%2?250:90,y:MH-90-i*SEG}}
+function segD(i){const a=nodePt(i),b=nodePt(i+1),k=SEG*.55;return `M${a.x} ${a.y}C${a.x} ${a.y-k} ${b.x} ${b.y+k} ${b.x} ${b.y}`}
+function bez(i,f){const a=nodePt(i),b=nodePt(i+1),k=SEG*.55,u=1-f,p=[a,{x:a.x,y:a.y-k},{x:b.x,y:b.y+k},b];
+  const c=(q)=>u*u*u*p[0][q]+3*u*u*f*p[1][q]+3*u*f*f*p[2][q]+f*f*f*p[3][q];return {x:c("x"),y:c("y")}}
+function posAt(s){for(let i=0;i<DEST.length-1;i++)if(s<DEST[i+1][1])return {seg:i,f:Math.max(0,(s-DEST[i][1])/(DEST[i+1][1]-DEST[i][1]))};return {seg:DEST.length-2,f:1}}
+function ptAt(s){const p=posAt(s);return bez(p.seg,p.f)}
+function sunflower(x,y,s){let p="";for(let a=0;a<360;a+=30)p+=`<ellipse cx="0" cy="-8.5" rx="3.2" ry="6" fill="#FFC93C" stroke="#E0A11B" stroke-width=".8" transform="rotate(${a})"/>`;
+  return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 4C-2 14 2 22 0 32" stroke="#3DA35D" stroke-width="3" fill="none"/><path d="M0 16c-8-2-12 2-13 6 7 1 11-1 13-6z" fill="#4FBF6A"/><path d="M1 23c8-3 12 0 13 4-7 1-11 0-13-4z" fill="#4FBF6A"/>${p}<circle r="6.5" fill="#7A4A21"/><circle r="4" fill="#5C3412"/><circle cx="-1.5" cy="-1.5" r="1" fill="#A0703A"/><circle cx="1.8" cy="1" r="1" fill="#A0703A"/></g>`}
+function pine(x,h,c,c2){return `<g transform="translate(${x} 24)"><rect x="-3" y="-6" width="6" height="8" fill="#8B5A2B"/><path d="M0 ${-h}L${h*.32} ${-h*.55}H${-h*.32}z" fill="${c}"/><path d="M0 ${-h*.78}L${h*.4} ${-h*.3}H${-h*.4}z" fill="${c}"/><path d="M0 ${-h*.55}L${h*.48} -4H${-h*.48}z" fill="${c}"/><path d="M0 ${-h}L${h*.32} ${-h*.55}H0zM0 ${-h*.78}L${h*.4} ${-h*.3}H0zM0 ${-h*.55}L${h*.48} -4H0z" fill="${c2}"/></g>`}
+function house(x,w,h,roof,wall){const I="#1A1530";return `<g transform="translate(${x} 24)"><rect x="${-w/2}" y="${-h}" width="${w}" height="${h}" fill="${wall}" stroke="${I}" stroke-width="2"/><path d="M${-w/2-4} ${-h}L0 ${-h-w*.55}L${w/2+4} ${-h}z" fill="${roof}" stroke="${I}" stroke-width="2" stroke-linejoin="round"/><rect x="-3.5" y="-11" width="7" height="11" rx="3" fill="#8B5A2B"/><rect x="${-w/2+4}" y="${-h+5}" width="6" height="6" rx="1.5" fill="#FFD43B" stroke="${I}" stroke-width="1"/><rect x="${w/2-10}" y="${-h+5}" width="6" height="6" rx="1.5" fill="#FFD43B" stroke="${I}" stroke-width="1"/></g>`}
+function destArt(i){
+  const I="#1A1530";
+  switch(i){
+  case 0:return `<path d="M-40 24L-10-24L20 24z" fill="#FF7EB6" stroke="${I}" stroke-width="2.5" stroke-linejoin="round"/><path d="M-32 24L-10-12V24z" fill="#FFB3D1"/><path d="M-10-24L-18 24h16z" fill="#C93B74"/><path d="M-10-24v-8" stroke="${I}" stroke-width="2"/><path d="M-10-32h11l-3 3 3 3h-11z" fill="#FFD43B"/>
+    <g transform="translate(34 20)"><path d="M-11 4l22-6M-11-2l22 6" stroke="#8B5A2B" stroke-width="4.5" stroke-linecap="round"/><g class="flick"><path d="M0 0c-9-4-8-15 0-22 8 7 9 18 0 22z" fill="#FF8A1F"/><path d="M0 0c-4-3-4-9 0-13 4 4 4 10 0 13z" fill="#FFD43B"/></g></g>`;
+  case 1:return sunflower(-28,-4,.85)+sunflower(26,-2,.8)+sunflower(0,-16,1.05);
+  case 2:return `<ellipse cx="-46" cy="14" rx="12" ry="7" fill="#fff"/><ellipse cx="46" cy="14" rx="12" ry="7" fill="#fff"/>`+["#FF7EB6","#FFD43B","#5EE0B5","#6EC6FF"].map((c,k)=>`<path d="M${-40+k*6} 16a${40-k*6} ${40-k*6} 0 0 1 ${80-k*12} 0" stroke="${c}" stroke-width="6" fill="none"/>`).join("")+
+    `<path d="M-36 6q36-18 72 0" stroke="#8B6B4A" stroke-width="2.5" fill="none"/><path d="M-36 16v-10M-12 10v-10M12 10v-10M36 16v-10" stroke="#8B6B4A" stroke-width="3" stroke-linecap="round"/><path d="M-46 20q46-20 92 0" stroke="#8B6B4A" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M-46 20q46-20 92 0" stroke="#B88A5A" stroke-width="3" fill="none" stroke-dasharray="6 4"/>`;
+  case 3:return `<ellipse cx="0" cy="10" rx="46" ry="17" fill="#4FA8E0"/><ellipse cx="0" cy="8" rx="42" ry="14" fill="#7CCBFF"/><g class="shimmer"><path d="M-26 4q6-3 12 0M6 13q6-3 12 0M-8 16q5-2 10 0" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round"/></g>
+    <circle cx="-22" cy="12" r="6" fill="#4FBF6A"/><path d="M-22 12l6-2" stroke="#7CCBFF" stroke-width="2"/><circle cx="20" cy="5" r="5" fill="#4FBF6A"/>
+    <g transform="translate(20 3)"><ellipse cx="-3" cy="-2" rx="2.4" ry="4" fill="#FF9EC7" transform="rotate(-25 -3 -2)"/><ellipse cx="3" cy="-2" rx="2.4" ry="4" fill="#FF9EC7" transform="rotate(25 3 -2)"/><ellipse cx="0" cy="-3" rx="2.4" ry="4.6" fill="#FFB8D6"/></g>
+    <g transform="translate(-2 6)"><ellipse rx="7" ry="4" fill="#fff"/><circle cx="5" cy="-4" r="3.4" fill="#fff"/><path d="M8-4l4 1-4 1z" fill="#FFB020"/><circle cx="6" cy="-5" r=".9" fill="${I}"/></g>
+    <path d="M-42 6v-20M-38 8v-14M40 4v-18" stroke="#3DA35D" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="-42" cy="-14" rx="2.2" ry="5" fill="#8B5A2B"/><ellipse cx="40" cy="-12" rx="2.2" ry="5" fill="#8B5A2B"/>`;
+  case 4:return pine(-30,46,"#4FBF6A","#3DA35D")+pine(30,42,"#4FBF6A","#3DA35D")+pine(0,60,"#3DA35D","#2E8B4A")+`<g transform="translate(16 22)"><rect x="-1.6" y="-2" width="3.2" height="5" fill="#FFF3E0"/><path d="M-5-1a5 4.5 0 0 1 10 0z" fill="#E5484D"/><circle cx="-1.5" cy="-2.5" r=".9" fill="#fff"/></g>`;
+  case 5:return `<circle cx="-24" cy="-42" r="8" fill="#fff" opacity=".7"/><circle cx="22" cy="-44" r="6" fill="#fff" opacity=".7"/><path d="M-44 20L-40-22Q-30-36-14-32L14-32Q32-38 42-22L46 20z" fill="#8E86A6" stroke="${I}" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M-40-22Q-30-36-14-32L14-32Q32-38 42-22Q20-26 0-24Q-20-26-40-22z" fill="#5FB25A"/><path d="M-34-6l8 4M28 0l8-4M-30 10l6 2" stroke="#6F6888" stroke-width="2.5" stroke-linecap="round"/>
+    <rect x="-12" y="-28" width="24" height="44" fill="#9FD8FF"/><g class="fall"><path d="M-7-26v40M0-28v42M7-26v40" stroke="#fff" stroke-width="2.5" stroke-dasharray="6 6" stroke-linecap="round"/></g>
+    <ellipse cx="0" cy="22" rx="36" ry="8" fill="#6EC6FF" stroke="${I}" stroke-width="2"/><circle cx="-8" cy="18" r="5" fill="#fff"/><circle cx="2" cy="17" r="6" fill="#fff"/><circle cx="11" cy="19" r="4.5" fill="#fff"/>`;
+  case 6:return `<path d="M-46-30q46 24 92 0" stroke="${I}" stroke-width="1.5" fill="none"/>`+[[-32,-23,"#FF7EB6"],[-12,-17,"#FFD43B"],[10,-17,"#5EE0B5"],[30,-22,"#B9A4FF"]].map(([x,y,c])=>`<rect x="${x-4}" y="${y-3}" width="8" height="10" rx="3" fill="${c}" stroke="${I}" stroke-width="1.3"/>`).join("")+
+    `<circle cx="10" cy="-36" r="3" fill="#fff" opacity=".8"/><circle cx="14" cy="-42" r="4" fill="#fff" opacity=".7"/><rect x="5" y="-33" width="6" height="10" fill="#8B5A2B"/>`+house(-30,24,20,"#E5484D","#FFF3D6")+house(4,30,28,"#4F7BD9","#FFE8C7")+house(34,20,16,"#13945B","#FFF3D6");
+  case 7:return `<path d="M-50 24L-18-22L-2 0L14-36L50 24z" fill="#8E7CC3" stroke="${I}" stroke-width="2.5" stroke-linejoin="round"/><path d="M14-36L50 24H24z" fill="#7564B0"/><path d="M-18-22L-2 0L-8 24H-24z" fill="#7564B0" opacity=".5"/>
+    <path d="M14-36L25-18L20-20L14-14L8-20L4-17z" fill="#fff"/><path d="M-18-22L-10-10L-14-12L-18-8L-22-12L-25-11z" fill="#fff"/><path d="M14-36v-14" stroke="${I}" stroke-width="2.5"/><path d="M14-50h14l-4 5 4 5h-14z" fill="#FF7EB6"/>
+    <path d="M-44 24l6-14 6 14zM38 24l6-14 6 14z" fill="#3DA35D"/>`;
+  default:{const tw=x=>`<rect x="${x-6}" y="-30" width="12" height="44" fill="#CBB8FF" stroke="${I}" stroke-width="2.2"/><path d="M${x-8}-30L${x}-46L${x+8}-30z" fill="#6C4CF5" stroke="${I}" stroke-width="2.2" stroke-linejoin="round"/><path d="M${x}-46v-8" stroke="${I}" stroke-width="1.8"/><path d="M${x}-54h9l-3 3 3 3h-9z" fill="${x<0?"#FF7EB6":"#FFD43B"}"/><rect x="${x-2}" y="-20" width="4" height="6" rx="2" fill="#FFD43B"/>`;
+    return `<ellipse cx="-24" cy="20" rx="28" ry="11" fill="#fff"/><ellipse cx="22" cy="20" rx="30" ry="12" fill="#fff"/><ellipse cx="0" cy="15" rx="26" ry="12" fill="#fff"/>
+    <path d="M-20 14v-28h6v4h6v-4h6v4h6v-4h6v4h6v-4h4v28z" fill="#DCCFFF" stroke="${I}" stroke-width="2.2" stroke-linejoin="round"/>${tw(-26)}${tw(26)}
+    <path d="M-5 14v-10a5 5 0 0 1 10 0v10z" fill="${I}"/><rect x="-14" y="-6" width="5" height="7" rx="2.5" fill="#FFD43B"/><rect x="9" y="-6" width="5" height="7" rx="2.5" fill="#FFD43B"/>
+    <g class="twinkle"><path d="M-46-30l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM44-34l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM0-40l1.5 4 4 1.5-4 1.5-1.5 4-1.5-4-4-1.5 4-1.5z" fill="#FFD43B"/></g>`}
+  }
+}
+let _decor=null,_pathPts=null;
+function pathPts(){if(_pathPts)return _pathPts;const a=[];for(let i=0;i<DEST.length-1;i++)for(let f=0;f<=1;f+=.025)a.push(bez(i,f));return _pathPts=a}
+function rnd(n){const x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)}
+function decorItem(type,x,y,k){
+  switch(type){
+  case 0:return `<path d="M${x-6} ${y}q2-9 4 0q2-11 4 0q2-8 4 0" stroke="#5FA84B" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+  case 1:{const c=["#FF7EB6","#FFFFFF","#B9A4FF","#FFD43B"][k%4];return `<g transform="translate(${x} ${y})">${[0,72,144,216,288].map(a=>`<circle cx="${(Math.cos(a*Math.PI/180)*3.6).toFixed(1)}" cy="${(Math.sin(a*Math.PI/180)*3.6).toFixed(1)}" r="2.8" fill="${c}"/>`).join("")}<circle r="2" fill="#F59E0B"/></g>`}
+  case 2:return `<g transform="translate(${x} ${y})"><circle cx="-7" cy="2" r="7" fill="#5FAE4E"/><circle cx="7" cy="2" r="7" fill="#5FAE4E"/><circle cx="0" cy="-3" r="8" fill="#6CC05A"/><circle cx="-2" cy="-6" r="2.5" fill="#9BE07F"/></g>`;
+  case 3:return `<g transform="translate(${x} ${y})"><ellipse cy="12" rx="12" ry="3.5" fill="#1A1530" opacity=".12"/><rect x="-2.5" y="2" width="5" height="10" rx="2" fill="#8B5A2B"/><circle cy="-6" r="12" fill="#4E9A43"/><circle cx="-4" cy="-10" r="5" fill="#6CC05A"/></g>`;
+  case 4:return `<g transform="translate(${x} ${y})"><ellipse rx="8" ry="5.5" fill="#B9B3C9"/><ellipse cx="-2" cy="-2" rx="3.5" ry="2" fill="#DCD8E6"/></g>`;
+  case 5:return `<g transform="translate(${x} ${y})"><rect x="-2" y="-2" width="4" height="7" rx="1.5" fill="#FFF3E0"/><path d="M-7-1a7 6 0 0 1 14 0z" fill="#E5484D"/><circle cx="-2.5" cy="-3.5" r="1.2" fill="#fff"/><circle cx="2.5" cy="-2.6" r="1" fill="#fff"/></g>`;
+  default:{const c=["#FFD43B","#6EC6FF","#FF7EB6"][k%3];return `<g transform="translate(${x} ${y}) rotate(${(k*37)%40-20})"><g class="flut"><ellipse cx="-3.5" rx="3.5" ry="5" fill="${c}"/><ellipse cx="3.5" rx="3.5" ry="5" fill="${c}"/></g><path d="M0-4v8" stroke="#1A1530" stroke-width="1.4"/></g>`}
+  }
+}
+function cloud(x,y,s){return `<g transform="translate(${x} ${y}) scale(${s||1})" opacity=".95"><ellipse rx="26" ry="10" fill="#fff"/><ellipse cx="-10" cy="-6" rx="12" ry="9" fill="#fff"/><ellipse cx="9" cy="-9" rx="14" ry="11" fill="#fff"/></g>`}
+function decor(){
+  if(_decor)return _decor;const P=pathPts(),y2=nodePt(2).y;let out="",k=0;
+  for(let i=0;i<14;i++){const x=rnd(i+500)*MW,y=260+rnd(i+600)*(MH-300);out+=`<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="${(30+rnd(i+700)*40).toFixed(0)}" ry="${(10+rnd(i+800)*10).toFixed(0)}" fill="#B6E394" opacity=".8"/>`}
+  for(let y=200;y<MH-22;y+=24)for(let x=18;x<MW-14;x+=26){k++;
+    const jx=x+(rnd(k)-.5)*14,jy=y+(rnd(k+99)-.5)*14;
+    if(rnd(k+7)>.45)continue;
+    if(P.some(p=>Math.hypot(p.x-jx,p.y-jy)<30))continue;
+    if(DEST.some((d,i)=>{const n=nodePt(i),ax=i%2?100:240;return Math.abs(jx-ax)<66&&jy>n.y-62&&jy<n.y+60}))continue;
+    if(jx>180&&jy>y2-34&&jy<y2+14)continue;
+    const r=rnd(k+3),type=r<.32?0:r<.54?1:r<.66?2:r<.78?3:r<.86?4:r<.92?5:6;
+    out+=decorItem(type,jx.toFixed(1),jy.toFixed(1),k);}
+  return _decor=out;
+}
+function mapSvg(s){
+  const pos=posAt(s),me=ptAt(s),r=reachedIdx(s),F='font-family="Nunito,sans-serif"',y2=nodePt(2).y;
+  let base="";for(let i=0;i<DEST.length-1;i++)base+=`<path d="${segD(i)}"/>`;
+  let fp="",n=0;
+  for(let i=0;i<=pos.seg;i++){const end=i<pos.seg?1:pos.f;
+    for(let f=0;f<end;f+=.05){const a=bez(i,f),b=bez(i,Math.min(1,f+.01)),dx=b.x-a.x,dy=b.y-a.y,L=Math.hypot(dx,dy)||1,sg=n++%2?1:-1,x=a.x-dy/L*3.4*sg,y=a.y+dx/L*3.4*sg;
+      fp+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${n%3?2.2:3.2}" fill="#fff" fill-opacity=".35" stroke="#fff" stroke-width="1.3"/>`}}
+  const det=S.slips.filter(x=>x.step!=null).map(x=>{const p=ptAt(Math.min(x.step,s)),dir=p.x<170?-1:1,cx=Math.min(MW-42,Math.max(42,p.x+dir*48)),ex=cx-dir*30,bx=dir>0?Math.min(MW-72,cx-14):Math.max(4,cx-54);
+    return `<g><path d="M${p.x.toFixed(1)} ${p.y.toFixed(1)}L${ex} ${p.y.toFixed(1)}" stroke="#5FB0E0" stroke-width="14" stroke-linecap="round"/><ellipse cx="${cx}" cy="${p.y}" rx="30" ry="19" fill="none" stroke="#5FB0E0" stroke-width="14"/>
+      <path d="M${p.x.toFixed(1)} ${p.y.toFixed(1)}L${ex} ${p.y.toFixed(1)}" stroke="#A8E0FF" stroke-width="9" stroke-linecap="round"/><ellipse cx="${cx}" cy="${p.y}" rx="30" ry="19" fill="#9BD47A" stroke="#A8E0FF" stroke-width="9"/>
+      <ellipse cx="${cx}" cy="${p.y+1}" rx="13" ry="7" fill="#6EC6FF"/><path d="M${cx-6} ${p.y}q3-2 6 0" stroke="#fff" stroke-width="1.6" fill="none"/>
+      ${decorItem(1,cx-19,p.y-5,1)}${decorItem(1,cx+19,p.y+5,2)}${decorItem(6,cx-24,p.y-24,3)}
+      <path d="M${cx} ${p.y+21}v12" stroke="#8B6B4A" stroke-width="3"/><path d="M${bx} ${p.y+31}h60l8 8.5-8 8.5h-60z" fill="#A9824F" stroke="#6E4F2E" stroke-width="1.5"/>
+      <text x="${bx+30}" y="${p.y+43}" text-anchor="middle" font-size="9.5" font-weight="800" fill="#fff" ${F}>Scenic route</text></g>`}).join("");
+  const nodes=DEST.map((d,i)=>{const p=nodePt(i),ax=i%2?100:240,ok=i<=r;
+    return `<g><circle cx="${p.x}" cy="${p.y}" r="13" fill="${ok?"#FFD43B":"#FFF8E6"}" stroke="#8B6B4A" stroke-width="3"/>
+      ${ok?`<path d="M${p.x-5} ${p.y}l3.5 3.5 7-7" stroke="#6E4F2E" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`:`<text x="${p.x}" y="${p.y+4}" text-anchor="middle" font-size="11" font-weight="800" fill="#6E4F2E" ${F}>${i}</text>`}
+      <g class="${ok?"":"locked"}" transform="translate(${ax} ${p.y-14})">${i<7?`<ellipse cx="0" cy="27" rx="50" ry="9" fill="#8FCB6C"/>`:""}${destArt(i)}</g>
+      <g transform="translate(${ax} ${p.y+40})"><rect x="-64" y="-14" width="128" height="${ok?24:38}" rx="10" fill="#FFF8E6" stroke="#8B6B4A" stroke-width="2"/>
+      <text y="3" text-anchor="middle" font-size="12.5" font-weight="800" fill="#4A3520" ${F}>${d[0]}</text>
+      ${ok?"":`<text y="18" text-anchor="middle" font-size="10.5" font-weight="700" fill="#8B6B4A" ${F}>${d[1]-s} steps away</text>`}</g></g>`}).join("");
+  const mascot=`<g transform="translate(${me.x.toFixed(1)} ${me.y.toFixed(1)})"><ellipse cx="0" cy="2" rx="18" ry="5" fill="#1A1530" opacity=".18"/><g class="walker">${buddy(2,S.equip.acc).replace("<svg ",'<svg x="-28" y="-60" width="56" height="61" ')}</g>
+    <g transform="translate(0 24)"><rect x="-40" y="-14" width="80" height="21" rx="10.5" fill="#6C4CF5" stroke="#fff" stroke-width="2"/><text y="1" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" ${F}>You are here</text></g></g>`;
+  return `<svg viewBox="0 0 ${MW} ${MH}" role="img" aria-label="Journey map. ${s} steps. ${DEST[r][0]} reached.">
+    <defs><linearGradient id="jsky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CFE6FF"/><stop offset=".7" stop-color="#E4F4FF"/><stop offset="1" stop-color="#A6DA82"/></linearGradient></defs>
+    <rect width="${MW}" height="${MH}" fill="#A6DA82"/><rect width="${MW}" height="270" fill="url(#jsky)"/>
+    <g class="drift">${cloud(50,36,1)}${cloud(170,170,.7)}</g><g class="drift" style="animation-duration:22s">${cloud(300,70,.8)}${cloud(40,200,.6)}</g>
+    ${decor()}
+    <path d="M${MW+10} ${y2-26}C300 ${y2-44} 262 ${y2+6} 196 ${y2-8}" stroke="#4FA8E0" stroke-width="20" fill="none" stroke-linecap="round"/>
+    <path d="M${MW+10} ${y2-26}C300 ${y2-44} 262 ${y2+6} 196 ${y2-8}" stroke="#7CCBFF" stroke-width="14" fill="none" stroke-linecap="round"/>
+    <path d="M${MW+10} ${y2-26}C300 ${y2-44} 262 ${y2+6} 196 ${y2-8}" stroke="#fff" stroke-width="2" fill="none" stroke-dasharray="6 14" stroke-linecap="round" opacity=".8" class="flow"/>
+    <g fill="none" stroke-linecap="round"><g stroke="#5FB0E0" stroke-width="30">${base}</g><g stroke="#A8E0FF" stroke-width="22">${base}</g><g stroke="#fff" stroke-width="2.5" stroke-dasharray="6 16" class="flow" opacity=".85">${base}</g></g>
+    ${fp}${det}${nodes}${mascot}
+    <rect x="5" y="5" width="${MW-10}" height="${MH-10}" rx="18" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="1 9" stroke-linecap="round" opacity=".85"/></svg>`;
+}
+function journeyBlock(){
+  const s=steps(),r=reachedIdx(s),nx=DEST[r+1];
+  const pct=nx?Math.round((s-DEST[r][1])/(nx[1]-DEST[r][1])*100):100;
+  return `<div class="card" id="journey" style="scroll-margin-top:16px"><div class="row between"><div class="grow"><div class="eyebrow">My journey</div><h2>${nx?`Next stop: ${nx[0]}`:"You reached Cloud Castle!"}</h2></div><span class="chipstat num">${s} steps</span></div>
+    ${nx?`<div><div class="xpbar"><i style="width:${pct}%"></i></div><p class="small muted" style="margin-top:6px">${nx[1]-s} steps to go · last stop: ${DEST[r][0]}</p></div>`:""}
+    <div class="map" id="map">${mapSvg(s)}</div>
+    ${S.slips.some(x=>x.step!=null)?`<div class="note" style="background:var(--lilac);color:var(--candy-ink)"><b>Dotted loops are scenic routes.</b> They mark slips. Relapse is part of the journey, so the map never sends you back to the start.</div>`:""}
+    <div class="note">How you move: each quest = 1 step · each day you show up = 2 steps · each day on track = 1 step · reaching your clinic = 5 steps.</div></div>`;
+}
+function scrollMap(){const m=document.getElementById("map");if(!m)return;const p=ptAt(steps()),k=m.clientWidth/MW;m.scrollTop=Math.max(0,p.y*k-m.clientHeight*.55)}
+function nextStop(){const s=steps(),r=reachedIdx(s),nx=DEST[r+1];
+  return `<button class="chipstat" data-act="go-journey" style="justify-content:flex-start;min-height:40px;font-size:13px;background:var(--bg);text-align:left">${nx?`Next stop: ${nx[0]} · ${nx[1]-s} steps`:"Cloud Castle reached!"}</button>`}
+let pendingDest=null;
+function checkJourney(){
+  if(!S.onboarded)return;const r=reachedIdx(steps());
+  if(r>=2&&!S.stickers.explorer)sticker("explorer",S.jreached==null);
+  if(S.jreached==null){S.jreached=r;save();return}
+  if(r>S.jreached){S.jreached=r;S.seeds+=15;save();if(host().innerHTML)pendingDest=r;else setTimeout(()=>destSheet(r),650)}
+}
+function destSheet(i){
+  sheet(`<div class="welcome" role="dialog" aria-modal="true" aria-labelledby="d-h" data-stop="1"><div class="bigst">${placeSticker(i,true)}</div>
+    <div class="eyebrow">New place · ${TIERS[tierOf(i)][0]} sticker</div><h1 id="d-h">You reached ${DEST[i][0]}!</h1><div class="big-xp">+15 seeds</div>
+    <p class="muted">${DEST[i+1]?`Next stop: ${DEST[i+1][0]}. Keep exploring.`:"You made it to the very top. What a journey."}</p>
+    <button class="primary wide" data-act="see-map">See my map</button></div>`,true);
+  rain();sfx("win");buzz([40,60,40,60,90]);
+}
+function relapseSheet(){
+  const s=steps(),r=reachedIdx(s);
+  sheet(`<div class="welcome" role="dialog" aria-modal="true" aria-labelledby="r-h" data-stop="1">${buddy(2,S.equip.acc)}
+    <h1 id="r-h">Relapse is part of the journey.</h1>
+    <p class="muted">We're taking the scenic route. You're still <b>${s} steps</b> along the path. ${DEST[r][0]} and every place before it stay unlocked. The map never sends you back to the start.</p>
+    <button class="primary wide" data-act="see-map">See my map</button><button class="ghost" data-act="close-sheet">Close</button></div>`,true);
+  buzz(20);sfx("coin");
+}
+
+/* ---------- substance features ---------- */
+const UNITS={Alcohol:"drinks",Tobacco:"cigarettes",Cannabis:"times",Other:"times"};
+const NOTUSED={Alcohol:"drinks not had",Tobacco:"cigarettes not smoked",Cannabis:"times not used",Other:"times not used"};
+const TRIG=["Stress","Boredom","Low mood","Tiredness","People","Place","Celebration","Pain","Other"];
+const SQ={
+  Alcohol:["Plan tonight alcohol-free","Keep a non-alcoholic drink ready","Tell someone you're not drinking today","Skip one place where you usually drink"],
+  TobaccoQ:["Get through one urge using Calm","Drink water when an urge hits","Stay away from one usual smoking spot"],
+  TobaccoR:["Delay your first cigarette by 30 minutes","Skip one cigarette you'd usually have","Drink water when an urge hits"],
+  Cannabis:["Plan your evening before cravings start","Swap one usual use time for a walk"],
+  Other:["Plan your riskiest time of day","Note one trigger to tell your doctor"]
+};
+const HEALTH={
+  Tobacco:[[0,"20 minutes","Heart rate and blood pressure drop."],[1,"12 hours","Carbon monoxide in your blood drops to normal."],[14,"2 to 12 weeks","Circulation improves and your lungs work better."],[30,"1 to 9 months","Coughing and shortness of breath decrease."],[365,"1 year","Your risk of heart disease is about half that of a smoker."]],
+  Alcohol:[[0,"First days","If you drank heavily, withdrawal can be risky. Stay in touch with your doctor."],[7,"1 to 2 weeks","Sleep often starts to feel more restful."],[30,"About 1 month","Studies of people who stopped for a month found lower blood pressure and weight, and better blood sugar control."],[90,"3 months and beyond","Your liver keeps recovering. Your doctor can check this with blood tests."]],
+  Cannabis:[[0,"First week","Irritability, poor sleep and vivid dreams are common, and usually ease within 1 to 2 weeks."],[14,"2 to 4 weeks","Sleep usually settles."],[30,"1 month and beyond","Many people notice clearer thinking and memory."]],
+  Other:[[0,"Early days","Withdrawal is different for each substance. Ask your doctor what to expect."],[14,"Weeks","Sleep, appetite and mood often steady over time."]]
+};
+function isIndia(){return countryName()==="India"}
+function trackerStats(t){
+  let avoided=0,saved=0;const per=+t.perDay||0,sp=+t.spend||0;
+  if(t.goal==="quit"){const days=Object.keys((S.jcred||{})[t.id]||{}).length||progressDays(t);avoided=days*per;saved=days*sp}
+  else{Object.keys(t.log).forEach(k=>{if(k>=t.start&&k<today())avoided+=Math.max(0,per-t.log[k])});saved=per?avoided*sp/per:0}
+  return {avoided,saved};
+}
+function statsHtml(t){
+  if(!t.spend&&!t.perDay)return `<button class="ghost small" style="align-self:flex-start;padding-inline:0" data-act="setup:${t.id}">+ Add your usual daily spend to see money saved</button>`;
+  const st=trackerStats(t);
+  return `<button class="mini-stats" data-act="setup:${t.id}" aria-label="Edit usual spend"><span><b class="num">${money(st.saved)}</b><span class="small muted">saved so far</span></span><span><b class="num">${Math.round(st.avoided)}</b><span class="small muted">${(DISC()?"times avoided":NOTUSED[t.sub])||"times not used"}</span></span></button>`;
+}
+function setupSheet(id){
+  const t=S.trackers.find(x=>x.id===id);if(!t)return;const u=UNITS[t.sub]||"times";
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="su-h" data-stop="1"><div class="grab"></div><h2 id="su-h">${esc(SN(t))}: your usual day</h2>
+    <p class="muted small">Rough numbers are fine. They only power your money-saved and ${u}-avoided counts.</p>
+    <form class="form" data-form="setup"><input type="hidden" name="id" value="${t.id}">
+    <label>Usual spend per day (${curCode()||"local currency"})<input id="f-spend" name="spend" type="number" min="0" step="any" inputmode="decimal" value="${t.spend||""}"></label>
+    <label>Usual ${u} per day<input id="f-per" name="per" type="number" min="0" step="any" inputmode="decimal" value="${t.perDay||""}"></label>
+    <button class="primary" type="submit">Save</button></form><button class="ghost" data-act="close-sheet">Cancel</button></div>`);
+}
+function healthSheet(id){
+  const t=S.trackers.find(x=>x.id===id);if(!t)return;const H=HEALTH[t.sub]||HEALTH.Other,d=t.goal==="quit"?progressDays(t):-1;
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="hl-h" data-stop="1"><div class="grab"></div><h2 id="hl-h">What's improving: ${esc(SN(t))}</h2>
+    <p class="muted small">${t.goal==="quit"?`Day ${d} of being ${FREE(t)}.`:`When you're ready to stop completely, this is what tends to improve.`}</p>
+    <ol class="tl">${H.map(([n,when,what])=>{const ok=d>=n;return `<li class="${ok?"ok":""}"><span class="dot">${ok?CHECK:""}</span><div><b>${when}</b><p class="small ${ok?"":"muted"}">${what}</p></div></li>`}).join("")}</ol>
+    <p class="small muted">${t.sub==="Tobacco"?"Source: World Health Organization.":"General information for this prototype, to be reviewed by a clinician."} Everyone's body is different.</p>
+    <button class="ghost" data-act="close-sheet">Close</button></div>`);
+}
+function patternsBlock(){
+  const since=addDays(-30),L=(S.triggers||[]).filter(x=>x.d>=since);
+  if(!L.length)return `<div class="card"><h2>Craving patterns</h2><p class="muted small">When you log a craving in your check-in, add what set it off. Your patterns show up here, ready to show your doctor.</p></div>`;
+  const tc={};L.forEach(x=>(x.tags||[]).forEach(g=>tc[g]=(tc[g]||0)+1));
+  const tags=Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,5),max=Math.max(1,...tags.map(x=>x[1]));
+  const B=[["Morning",5,12],["Afternoon",12,17],["Evening",17,21],["Night",21,29]];
+  const bc=B.map(([n,a,b])=>[n,L.filter(x=>{const h=x.h<5?x.h+24:x.h;return h>=a&&h<b}).length]),bmax=Math.max(1,...bc.map(x=>x[1]));
+  const strong=L.filter(x=>x.c==="Strong").length,peak=bc.slice().sort((a,b)=>b[1]-a[1])[0];
+  return `<div class="card"><div class="row between"><h2>Craving patterns</h2><span class="small muted">Last 30 days</span></div>
+    <div class="mini-stats" style="cursor:default"><span><b class="num">${L.length}</b><span class="small muted">cravings logged</span></span><span><b class="num">${strong}</b><span class="small muted">were strong</span></span></div>
+    ${tags.length?`<div class="note"><b>Most common trigger:</b> ${esc(tags[0][0].toLowerCase())}. Cravings peak in the ${peak[0].toLowerCase()}.</div>`:""}
+    <div class="eyebrow">What set them off</div>${tags.map(([g,n],i)=>`<div class="barrow"><span>${esc(g)}</span><span class="bar"><i style="width:${(n/max*100).toFixed(0)}%;background:var(${CANDY[i%6]})"></i></span><b class="num">${n}</b></div>`).join("")}
+    <div class="eyebrow">Time of day</div>${bc.map(([g,n])=>`<div class="barrow"><span>${g}</span><span class="bar"><i style="width:${(n/bmax*100).toFixed(0)}%;background:var(--sky)"></i></span><b class="num">${n}</b></div>`).join("")}
+    <button class="primary" style="align-self:flex-start" data-act="doc">Show to my doctor</button><p class="small muted">Opens a one-screen summary for your visit. It stays on this phone.</p></div>`;
+}
+
+/* ---------- country-aware help, currency ---------- */
+function countryName(){const s=S.clinic.cc||"India|91";return s.slice(0,s.lastIndexOf("|"))}
+const EU112="Austria,Belgium,Bulgaria,Croatia,Cyprus,Czechia,Denmark,Estonia,Finland,France,Germany,Greece,Hungary,Iceland,Italy,Latvia,Lithuania,Luxembourg,Malta,Netherlands,Norway,Poland,Portugal,Romania,Slovakia,Slovenia,Spain,Sweden,Switzerland,Turkey,Ireland".split(",");
+const EMERG={"India":"112","United States":"911","Canada":"911","Mexico":"911","Philippines":"911","United Kingdom":"999","Australia":"000","New Zealand":"111","Singapore":"995","Malaysia":"999","Hong Kong":"999","Bangladesh":"999","Japan":"119","South Korea":"119","China":"120","Sri Lanka":"1990","United Arab Emirates":"998","Saudi Arabia":"997","South Africa":"112","Nigeria":"112","Kenya":"112","Brazil":"192","Israel":"101"};
+const HELP={"India":["Tele-MANAS","14416"],"United States":["988 Suicide & Crisis Lifeline","988"],"Canada":["9-8-8 Crisis Line","988"],"United Kingdom":["Samaritans","116 123"],"Ireland":["Samaritans","116 123"],"Australia":["Lifeline","13 11 14"],"New Zealand":["Need to talk? 1737","1737"]};
+function emerg(){const n=countryName();return EMERG[n]||(EU112.includes(n)?"112":null)}
+function helpLine(){return HELP[countryName()]||null}
+const EUR="Austria,Belgium,Croatia,Cyprus,Estonia,Finland,France,Germany,Greece,Ireland,Italy,Latvia,Lithuania,Luxembourg,Malta,Netherlands,Portugal,Slovakia,Slovenia,Spain".split(",");
+const CUR={"India":"INR","United States":"USD","United Kingdom":"GBP","Canada":"CAD","Australia":"AUD","New Zealand":"NZD","Singapore":"SGD","Malaysia":"MYR","United Arab Emirates":"AED","Saudi Arabia":"SAR","Japan":"JPY","China":"CNY","South Korea":"KRW","Hong Kong":"HKD","Philippines":"PHP","Indonesia":"IDR","Thailand":"THB","Pakistan":"PKR","Bangladesh":"BDT","Sri Lanka":"LKR","Nepal":"NPR","South Africa":"ZAR","Nigeria":"NGN","Kenya":"KES","Brazil":"BRL","Mexico":"MXN","Israel":"ILS","Switzerland":"CHF","Sweden":"SEK","Norway":"NOK","Denmark":"DKK","Poland":"PLN","Turkey":"TRY"};
+function curCode(){const n=countryName();return CUR[n]||(EUR.includes(n)?"EUR":null)}
+function money(n){const c=curCode();try{if(c)return new Intl.NumberFormat(countryName()==="India"?"en-IN":undefined,{style:"currency",currency:c,maximumFractionDigits:0}).format(Math.round(n))}catch(e){}return Math.round(n).toLocaleString()}
+function emergRow(){
+  const e=emerg(),n=countryName(),h=helpLine();
+  return (e?`<div class="row between"><span>Emergency (${esc(n)})<br><span class="copyable">${e}</span></span><a class="btn danger" href="tel:${e}">Call ${e}</a></div>`:`<p><b>Emergency:</b> call your local emergency number.</p>`)+
+    (h?`<div class="row between"><span>${esc(h[0])}<br><span class="copyable">${h[1]}</span></span><a class="btn" href="tel:${h[1].replace(/\s/g,"")}">Call</a></div>`:`<p class="small muted">Find a free helpline near you at <a href="https://findahelpline.com" target="_blank" rel="noopener">findahelpline.com</a>.</p>`);
+}
+function countrySelect(){const cur=S.clinic.cc||"India|91";return `<label>Your country<select id="f-country">${CC.map(x=>{const v=x.n+"|"+x.c;return `<option value="${esc(v)}" ${v===cur?"selected":""}>${esc(x.n)}</option>`}).join("")}</select></label>`}
+function doctorSheet(){
+  const since=addDays(-30),L=(S.triggers||[]).filter(x=>x.d>=since),tc={};L.forEach(x=>(x.tags||[]).forEach(g=>tc[g]=(tc[g]||0)+1));
+  const top=Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>`${x[0]} (${x[1]})`).join(", ")||"None logged";
+  const slips=S.slips.filter(x=>x.date>=since).length,mc={Low:0,Okay:0,Good:0};
+  Object.entries(S.checkins).forEach(([d,c])=>{if(d>=addDays(-14)&&c.mood&&mc[c.mood]!=null)mc[c.mood]++});
+  const meds=S.meds.map(m=>{let t=0;for(let i=1;i<=7;i++)if(m.log[addDays(-i)]==="taken")t++;return `${esc(m.name)}: taken ${t} of the last 7 days`});
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="doc-h" data-stop="1"><div class="grab"></div><div class="eyebrow">For my doctor</div><h2 id="doc-h">My last 30 days</h2>
+    <p class="small muted">${esc(fmtDate(parseYmd(since)))} to ${esc(fmtDate(new Date()))}. Self-reported in Unhookd.</p>
+    <table class="sum"><tr><th>Goals</th><td>${S.trackers.map(t=>`${esc(t.sub)}: ${t.goal==="quit"?`stop, ${progressDays(t)} days so far`:`cut down to ${t.limit} a day, ${progressDays(t)} days within goal`}`).join("<br>")||"None"}</td></tr>
+    <tr><th>Slips</th><td>${slips}</td></tr><tr><th>Cravings</th><td>${L.length} logged, ${L.filter(x=>x.c==="Strong").length} strong</td></tr>
+    <tr><th>Top triggers</th><td>${esc(top)}</td></tr><tr><th>Mood, 14 days</th><td>Low ${mc.Low} · Okay ${mc.Okay} · Good ${mc.Good}</td></tr>
+    ${meds.length?`<tr><th>Medicines</th><td>${meds.join("<br>")} (self-reported)</td></tr>`:""}</table>
+    ${S.pro?`<div class="eyebrow">Detailed report ${PROTAG}</div><pre class="report">${esc(reportText())}</pre><button class="primary" data-act="copy-report">Copy report</button>`:`<button class="ghost small" style="align-self:flex-start;padding-inline:0" data-act="pro-sheet">${PROTAG} Detailed, copyable report</button>`}
+    <button class="ghost" data-act="close-sheet">Close</button></div>`);
+}
+function PACE(){return S.pace==="short"?[3,4]:[4,6]}
+const GROUND=["Name 5 things you can see","Name 4 things you can feel","Name 3 things you can hear","Name 2 things you can smell","Name 1 thing you can taste","Done. Notice your breathing now."];
+let ground=0;
+const LOGO='<svg viewBox="0 0 48 48" width="52" height="52" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#6C4CF5"/><path d="M13 5v11a6 6 0 0 0 12 0v-3" stroke="#fff" stroke-width="3.4" fill="none" stroke-linecap="round"/><path d="M36 33l8-7v14z" fill="#FFD43B"/><ellipse cx="27" cy="33" rx="11" ry="8" fill="#FFD43B"/><circle cx="22" cy="31.5" r="1.9" fill="#1A1530"/><path d="M17.5 35.5q2 1.5 4 0" stroke="#1A1530" stroke-width="1.4" fill="none" stroke-linecap="round"/><circle cx="40" cy="14" r="2.4" fill="none" stroke="#9BD7FF" stroke-width="1.6"/><circle cx="44" cy="8" r="1.6" fill="none" stroke="#9BD7FF" stroke-width="1.4"/></svg>';
+
+const TIERS=[["Common","#E8F7E0"],["Rare","#E3EEFF"],["Epic","#FFF4D6"],["Legendary","#F1E8FF"]];
+function tierOf(i){return i<3?0:i<5?1:i<7?2:3}
+function placeSticker(i,got){
+  const t=tierOf(i),ring=t===3?"conic-gradient(#FF7EB6,#FFD43B,#5EE0B5,#6EC6FF,#B9A4FF,#FF7EB6)":t===2?"linear-gradient(135deg,#FFE680,#E0A11B,#FFF1A8,#E0A11B)":t===1?"linear-gradient(135deg,#F4F7FB,#9EAABB,#F4F7FB,#AEB8C6)":"#FFFFFF";
+  return `<div class="pst t${t} ${got?"":"off"}" style="background:${ring}"><div class="pin" style="background:${TIERS[t][1]}"><svg viewBox="-56 -60 112 104" aria-hidden="true">${destArt(i)}</svg></div></div>`;
+}
+function journeyStickers(){
+  const r=reachedIdx(steps());
+  return `<div class="row between"><h2>Journey stickers</h2><span class="small muted num" style="font-weight:800">${r+1} of ${DEST.length}</span></div>
+  <p class="small muted">Every new place gives a sticker, and they get rarer the further you go: Common, Rare, Epic, then Legendary.</p>
+  <div class="stickers jst">${DEST.map((d,i)=>`<div class="sticker ${i<=r?"":"off"}">${placeSticker(i,i<=r)}<span>${esc(d[0])}</span><span class="tier tt${tierOf(i)}">${TIERS[tierOf(i)][0]}</span></div>`).join("")}</div>`;
+}
+
+/* ---------- Unhookd Pro (prototype) ---------- */
+const HELPED=["Calm corner","Went for a walk","Drank water","Called someone","Distracted myself","Waited it out"];
+const PRO_ROWS=[["Daily quests","Basic","Personalised level"],["Craving tracker","Basic","Intensity and what helped"],["Insights","Craving patterns","14-day trends and best coping tools"],["Journey map","Core journey","Core journey"],["Learn","Starter stories","Full library"],["Calm corner","Bubbles, breathing, grounding","Plus pond ripples"],["Doctor summary","Basic","Detailed, copyable report"],["Finn's shop","Standard items","Pro-only items"],["Emergency and slip support","Always free","Always free"]];
+function QCAP(){return S.pro?{gentle:4,standard:6,stretch:9}[S.difficulty||"standard"]:6}
+const PROTAG='<span class="protag">PRO</span>';
+function proCard(){
+  return `<div class="card procard"><div class="row between"><div><div class="eyebrow" style="color:inherit;opacity:.85">Unhookd Pro</div><h2 style="color:inherit">${S.pro?"You're on Pro":"Get more from your recovery"}</h2></div>${S.pro?PROTAG:""}</div>
+    <p style="opacity:.9">Free gives you the tools to stay on track. Pro helps you understand your patterns and personalise your journey.</p>
+    <div class="ptable"><table><tr><th></th><th>Free</th><th>Pro</th></tr>${PRO_ROWS.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join("")}</table></div>
+    <button class="${S.pro?"":"sun"} wide" data-act="pro-toggle">${S.pro?"Switch back to Free":"Try Pro (prototype, no payment)"}</button>
+    <p class="small" style="opacity:.85">Prototype only. No payment is taken. Price to be decided. Safety tools will always be free.</p></div>`;
+}
+function proSheet(why){
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pro-h" data-stop="1"><div class="grab"></div>${PROTAG}<h2 id="pro-h">${esc(why||"This is a Pro feature")}</h2>
+    <p class="muted">Pro adds personalised quests, a detailed craving journal, 14-day insights, more stories, extra calm tools, a detailed report and Pro-only items for Finn.</p>
+    <p class="small muted">Emergency help, slip support and your core journey are always free.</p>
+    <button class="primary wide" data-act="pro-on">Try Pro (prototype, no payment)</button><button class="ghost" data-act="close-sheet">Not now</button></div>`);
+}
+function lockedCard(title,why){
+  return `<div class="card locked-card"><div class="row between"><h2>${title}</h2>${PROTAG}</div><div class="blurred" aria-hidden="true">${insightsBody(true)}</div>
+    <div class="lockover"><p><b>${esc(why)}</b></p><button class="primary" data-act="pro-sheet">Unlock with Pro</button></div></div>`;
+}
+function bars(vals,max,col,labels){
+  const W=300,H=86,n=vals.length,bw=W/n;max=Math.max(1,max);
+  return `<svg viewBox="0 0 ${W} ${H+16}" class="chart" role="img" aria-label="Bar chart">${vals.map((v,i)=>{const h=Math.max(v?4:0,v/max*H);return `<rect x="${(i*bw+3).toFixed(1)}" y="${(H-h).toFixed(1)}" width="${(bw-6).toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="${Array.isArray(col)?col[i]:col}"/>`}).join("")}
+    <line x1="0" y1="${H}" x2="${W}" y2="${H}" stroke="var(--line)"/>${labels?labels.map((l,i)=>l?`<text x="${(i*bw+bw/2).toFixed(1)}" y="${H+13}" text-anchor="middle" font-size="10" fill="var(--ink2)" font-family="Nunito,sans-serif" font-weight="700">${l}</text>`:"").join(""):""}</svg>`;
+}
+function insightsBody(fake){
+  const days=[...Array(14)].map((_,i)=>addDays(i-13)),lab=days.map((d,i)=>i%2?"":String(parseYmd(d).getDate()));
+  const qn=days.map(d=>Object.keys(S.qdone[d]||{}).length);
+  const T=(S.triggers||[]).filter(x=>x.d>=days[0]);
+  const cn=days.map(d=>T.filter(x=>x.d===d).length);
+  const ci=days.map(d=>{const L=T.filter(x=>x.d===d&&x.i);return L.length?L.reduce((a,b)=>a+b.i,0)/L.length:0});
+  const ccol=ci.map(v=>v>=4?"#E5484D":v>=3?"#FF9F43":"#FFD43B");
+  const mood=days.map(d=>{const c=S.checkins[d];return c&&c.mood?{Low:1,Okay:2,Good:3}[c.mood]||0:0});
+  const hc={};T.forEach(x=>(x.helped||[]).forEach(h=>hc[h]=(hc[h]||0)+1));
+  const help=Object.entries(hc).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const wd={};T.forEach(x=>{const w=parseYmd(x.d).toLocaleDateString([], {weekday:"long"});wd[w]=(wd[w]||0)+1});
+  const topW=Object.entries(wd).sort((a,b)=>b[1]-a[1])[0];
+  const avgQ=(qn.reduce((a,b)=>a+b,0)/14).toFixed(1);
+  return `<div class="eyebrow">Quests done, last 14 days</div>${bars(qn,Math.max(...qn),"var(--pri)",lab)}<p class="small muted">About ${avgQ} quests a day.</p>
+    <div class="eyebrow">Cravings, last 14 days</div>${bars(cn,Math.max(...cn,2),ccol,lab)}<p class="small muted">Colour shows how intense they felt: yellow mild, orange moderate, red intense.${topW?` They come most often on ${topW[0]}s.`:""}</p>
+    <div class="eyebrow">Mood, last 14 days</div><div class="moodrow">${mood.map(m=>`<i class="m${m}"></i>`).join("")}</div><p class="small muted">Green good, blue okay, lilac low, grey no check-in.</p>
+    <div class="eyebrow">What helped most</div>${help.length?help.map(([h,n],i)=>`<div class="barrow"><span>${esc(h)}</span><span class="bar"><i style="width:${(n/help[0][1]*100).toFixed(0)}%;background:var(${CANDY[i]})"></i></span><b class="num">${n}</b></div>`).join(""):`<p class="small muted">Log what helped after a craving to see this.</p>`}`;
+}
+function insightsBlock(){
+  if(!S.pro)return lockedCard("My insights","See 14-day trends of quests, cravings and mood, and which coping tools work best for you.");
+  return `<div class="card"><div class="row between"><h2>My insights</h2>${PROTAG}</div>${insightsBody()}<button class="primary" style="align-self:flex-start" data-act="doc">Open detailed report</button></div>`;
+}
+function reportText(){
+  const since=addDays(-30),L=(S.triggers||[]).filter(x=>x.d>=since),hc={},tc={};
+  L.forEach(x=>{(x.helped||[]).forEach(h=>hc[h]=(hc[h]||0)+1);(x.tags||[]).forEach(g=>tc[g]=(tc[g]||0)+1)});
+  const qd30=[...Array(30)].map((_,i)=>Object.keys(S.qdone[addDays(-i)]||{}).length).reduce((a,b)=>a+b,0);
+  const ints=L.filter(x=>x.i);
+  return ["Unhookd report: last 30 days ("+fmtDate(parseYmd(since))+" to "+fmtDate(new Date())+")","",
+    ...S.trackers.map(t=>t.sub+": "+(t.goal==="quit"?"stop, "+progressDays(t)+" days so far":"cut down to "+t.limit+" a day, "+progressDays(t)+" days within goal")),
+    "Slips: "+S.slips.filter(x=>x.date>=since).length,
+    "Cravings logged: "+L.length+" ("+L.filter(x=>x.c==="Strong").length+" strong)"+(ints.length?", average intensity "+(ints.reduce((a,b)=>a+b.i,0)/ints.length).toFixed(1)+" of 5":""),
+    "Top triggers: "+(Object.entries(tc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]+" ("+x[1]+")").join(", ")||"none"),
+    "What helped: "+(Object.entries(hc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]+" ("+x[1]+")").join(", ")||"not logged"),
+    "Quests completed: "+qd30,
+    "Self-reported in Unhookd."].join("\n");
+}
+
+/* ---------- render ---------- */
+function isDark(){return S.mode==="dark"}
+function applyTheme(){const t=THEMES[S.equip.theme]||THEMES.grape,de=document.documentElement,r=de.style;de.dataset.mode=isDark()?"dark":"light";r.setProperty("--pri",t.pri);
+  if(!isDark()){r.setProperty("--pri-soft",t.soft);r.setProperty("--pot",t.pot)}else{r.removeProperty("--pri-soft");r.removeProperty("--pot")}}
+function render(){
+  applyTheme();
+  const root=document.getElementById("root"),nav=document.getElementById("tabs");
+  document.title=DISC()?"Daily":"Unhookd";
+  if(S.onboarded&&S.lock.pin&&!unlocked){root.innerHTML=vLock();nav.hidden=true;return}
+  if(!S.onboarded){root.innerHTML=vOnboard();nav.hidden=true;return}
+  nav.hidden=false;
+  root.innerHTML=({today:vToday,journey:vJourney,care:vCare,learn:vLearn,calm:vCalm,me:vMe}[tab])();
+  nav.innerHTML=[["today","Today"],["journey","Journey"],["care","Care"],["learn","Learn"],["me","Me"]].map(([k,l])=>`<button class="${tab===k?"on":""}" data-act="tab:${k}" aria-current="${tab===k?"page":"false"}">${IC[k]}${L(l)}</button>`).join("");
+  checkJourney();if(tab==="journey")scrollMap();
+  if(tab==="calm"&&breath.on){const c=document.getElementById("b-circle");if(c)c.style.transform=breath.phase==="Breathe in"?"scale(1)":"scale(.6)"}
+}
+function go(t){if(t!=="calm"&&breath.on)stopBreath();tab=t;try{history.replaceState(null,"","#"+t)}catch(e){}closeSheet();render();window.scrollTo(0,0)}
+function bumpBuddy(){const b=document.getElementById("buddy-svg");if(b){b.classList.remove("bounce");void b.offsetWidth;b.classList.add("bounce")}}
+function dailyOpen(){
+  if(!S.onboarded||S.lastOpen===today()||(S.lock.pin&&!unlocked))return;
+  S.lastOpen=today();if(!S.showups.includes(today()))S.showups.push(today());gain(15,5);sticker("showup",true);checkMilestones(true);save();render();welcome();
+}
+function doArrive(el){const ai=apptInfo();if(ai&&!ai.window&&!ai.arrived){toast("This unlocks on the day, 3 hours before your visit");buzz([10,40,10]);return}if(!ai||!ai.window||ai.arrived)return;S.appt.arrived=true;S.stats.arrivals=(S.stats.arrivals||0)+1;gain(30,10);sticker("arrived");
+  const d=qd();if(!d.arrive){d.arrive=true;S.stats.quests++;gain(10,2)}celebrate(el,"+5 steps",true);save();render();bumpBuddy()}
+
+/* ---------- trusted person, lock, if-then plans, clinic code, language, gentle escalation ---------- */
+function fill(s){s.trusted=s.trusted||{name:"",cc:(s.clinic&&s.clinic.cc)||"India|91",phone:"",last:""};s.lock=s.lock||{pin:"",discreet:false};
+  s.plans=s.plans||[];s.lang=s.lang||"en";s.escHide=s.escHide||"";s.heavy=s.heavy||"";s.consent=s.consent||"";return s}
+fill(S);
+const _blank=blank;blank=function(){return fill(_blank())};
+const _sample=sample;sample=function(){const s=fill(_sample());Object.assign(s,{consent:today(),
+  trusted:{name:"Ravi (sample)",cc:"India|91",phone:"90000 00000",last:addDays(-8)},
+  plans:[{id:"p1",if:"I'm stressed after work",then:"walk round the block before going home"},{id:"p2",if:"friends start ordering drinks",then:"order a lime soda first and text Ravi"}]});return s};
+
+/* discreet names */
+function DISC(){return !!(S.lock&&S.lock.discreet)}
+function SN(t){return DISC()?"Goal "+(Math.max(0,S.trackers.indexOf(t))+1):t.sub}
+function FREE(t){return DISC()?"on track":esc(t.sub.toLowerCase())+"-free"}
+
+/* language */
+const HI={"Today":"आज","Journey":"सफ़र","Care":"देखभाल","Learn":"सीखें","Me":"मैं","Calm":"शांत",
+  "Today's quests":"आज के छोटे काम","My trackers":"मेरे ट्रैकर","Had a slip, or worried you might?":"फिसल गए, या डर है कि फिसल सकते हैं?",
+  "No judgement, nothing lost. Safety info and your clinic, one tap away.":"कोई जज नहीं करेगा, कुछ नहीं खोया। सुरक्षा जानकारी और आपका क्लिनिक, बस एक टैप दूर।",
+  "Get support now":"अभी मदद लें","Calm corner":"शांत कोना","How are you, really?":"सच में, आप कैसे हैं?",
+  "Low":"उदास","Okay":"ठीक","Good":"अच्छा","Any cravings?":"कोई तलब?","None":"नहीं","Some":"थोड़ी","Strong":"तेज़",
+  "Done":"हो गया","Not now":"अभी नहीं","Close":"बंद करें","Call":"कॉल करें","Read aloud":"सुनें",
+  "You haven't lost your progress.":"आपकी प्रगति नहीं खोई है।",
+  "Your steps, seeds and stickers all stay. Let's focus on what you need now.":"आपके कदम, बीज और स्टिकर सब बने रहेंगे। अब देखते हैं कि आपको अभी क्या चाहिए।",
+  "Stay safe":"सुरक्षित रहें","Reach help":"मदद से जुड़ें","Your plan":"आपकी योजना","If":"अगर","then":"तो",
+  "Strong craving? You noticed it. That counts.":"तेज़ तलब? आपने इसे पहचाना। यह भी मायने रखता है।",
+  "Cravings rise and fall like a wave, often within minutes. Pick one:":"तलब लहर की तरह आती है और चली जाती है, अक्सर कुछ ही मिनटों में। एक चुनें:",
+  "Pop bubbles or breathe":"बुलबुले फोड़ें या साँस लें","Call my clinic":"मेरे क्लिनिक को कॉल करें","I'm okay for now":"अभी मैं ठीक हूँ",
+  "Let's call your clinic today":"आज अपने क्लिनिक को कॉल करें","Finn noticed something":"फ़िन ने कुछ देखा","Not today":"आज नहीं",
+  "Language":"भाषा","Emergency":"आपातकाल"};
+function L(s){return S.lang==="hi"&&HI[s]||s}
+const SAFE_HI={Alcohol:`<p><b>अगर आप ज़्यादा पी रहे थे</b>, तो अचानक फिर से बंद करने पर खतरनाक विड्रॉल हो सकता है। खुद से बंद करने से पहले अपने डॉक्टर से बात करें।</p><p><b>तुरंत आपातकालीन मदद लें</b> अगर दौरा पड़े, ऐसी चीज़ें दिखें या सुनाई दें जो नहीं हैं, उलझन हो, तेज़ कंपकंपी हो, या बुखार के साथ दिल तेज़ धड़के।</p>`,
+  Tobacco:`<p>तंबाकू की एक फिसलन अपने आप में खतरनाक नहीं है। तलब आमतौर पर कुछ ही मिनटों में चली जाती है। अगर आप निकोटीन रिप्लेसमेंट लेते हैं, तो डॉक्टर की सलाह के अनुसार लेते रहें।</p>`,
+  Other:`<p>अगर आपको बहुत बेचैनी, उलझन, सीने में दर्द या साँस लेने में तकलीफ़ हो, या कोई जाग न रहा हो, तो अभी आपातकालीन सेवा को कॉल करें।</p><p>नशे को मिलाएँ नहीं, और अकेले इस्तेमाल न करें।</p>`};
+const SPK='<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+function sayBtn(){return `<button class="ghost small say-btn" data-act="say">${SPK} ${L("Read aloud")}</button>`}
+function speak(text){
+  try{if(!("speechSynthesis" in window)){toast("Read aloud isn't supported in this browser");return}
+    const ss=window.speechSynthesis;if(ss.speaking){ss.cancel();toast("Stopped");return}
+    const u=new SpeechSynthesisUtterance(text);u.lang=/[ऀ-ॿ]/.test(text)?"hi-IN":"en-IN";u.rate=.95;ss.speak(u);toast(L("Read aloud")+"…")}catch(e){toast("Read aloud isn't available here")}
+}
+
+/* trusted person */
+function trustedDue(){const T=S.trusted;if(!T.phone)return false;return !T.last||T.last===today()||parseYmd(T.last)<=parseYmd(addDays(-7))}
+function waLink(T,msg){return "https://wa.me/"+telFull(T).replace(/\D/g,"")+"?text="+encodeURIComponent(msg)}
+function smsLink(T,msg){return "sms:"+telFull(T)+"?body="+encodeURIComponent(msg)}
+function helloMsg(k){const n=(S.trusted.name||"").replace(/ \(sample\)/,"");return k==="call"?`Hi ${n}, could you give me a call when you're free? No emergency, I'd just like to talk.`:`Hi ${n}, my weekly hello: I'm doing okay this week.`}
+function trustedCard(){
+  const T=S.trusted,has=T.phone||T.name;
+  if(ui.editTrusted||!has)return `<div class="card" id="trusted"><h2>My trusted person</h2>
+    <p class="small muted">Optional. Pick one person you trust. Once a week Unhookd helps you send them a single line, either "doing okay" or "could use a call". No details, no numbers, nothing about what you're working on. You always press send yourself.</p>
+    <form class="form" data-form="trusted"><label>Their name<input id="f-tname" name="name" value="${esc(T.name)}" placeholder="e.g. Ravi"></label>
+    <div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">Their phone</span>${phoneField("f-tcc","f-tphone",T.cc,T.phone)}</div>
+    <div class="row"><button class="primary" type="submit">Save</button>${has?`<button type="button" data-act="trusted-cancel">Cancel</button>`:""}</div></form></div>`;
+  return `<div class="card" id="trusted" style="background:var(--mint);color:var(--candy-ink)"><div class="row between"><div><div class="eyebrow" style="color:inherit">My trusted person</div><h2 style="color:inherit">${esc(T.name||"Trusted person")}</h2><p class="small">${esc(dispPhone(T))}</p></div><button class="ghost small" style="color:inherit" data-act="trusted-edit">Edit</button></div>
+    <p class="small">${T.last?"Last hello: "+esc(fmtDate(parseYmd(T.last))):"No hello sent yet."} They only ever see the line you choose.</p>
+    <div class="row"><button class="primary" data-act="hello">Send weekly hello</button><button class="ghost small" style="color:inherit" data-act="trusted-del">Remove</button></div></div>`;
+}
+let helloK="";
+function helloSheet(){
+  const T=S.trusted;if(!T.phone){go("me");ui.editTrusted=true;render();setTimeout(()=>{const c=document.getElementById("trusted");if(c)c.scrollIntoView()},60);toast("Add your trusted person first");return}
+  const m=helloK?helloMsg(helloK):"";
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="he-h" data-stop="1"><div class="grab"></div><h2 id="he-h">Weekly hello to ${esc(T.name||"your person")}</h2>
+    <p class="muted">Pick one. Only this line is shared.</p>
+    <div class="mood"><button class="${helloK==="ok"?"on":""}" data-act="hello-pick:ok">${moodFace(2)}Doing okay</button><button class="${helloK==="call"?"on":""}" data-act="hello-pick:call">${moodFace(1)}Could use a call</button></div>
+    ${m?`<div class="note">${esc(m)}</div>
+    <a class="btn primary wide" href="${waLink(T,m)}" target="_blank" rel="noopener" data-act="hello-sent">Open WhatsApp</a>
+    <div class="row"><a class="btn grow" href="${smsLink(T,m)}" data-act="hello-sent">Text message</a><button class="grow" data-act="hello-copy">Copy message</button></div>
+    <p class="small muted">If nothing opens from this page, copy the message and send it to ${esc(dispPhone(T))} yourself.</p>`:`<p class="small muted">Pick an option above to see the message.</p>`}
+    <button class="ghost" data-act="close-sheet">${L("Not now")}</button></div>`);
+}
+function helloDone(){S.trusted.last=today();if(!qd().hello){qd().hello=true;S.stats.quests++;gain(10,2)}save()}
+
+/* PIN lock */
+var unlocked=!(S.lock&&S.lock.pin),pinIn="",hiddenAt=0;
+function vLock(){
+  const keys=["1","2","3","4","5","6","7","8","9","bio","0","del"];
+  return `<div class="ob lockscreen"><div style="display:flex;justify-content:center;margin-top:24px">${DISC()?`<div class="plainlogo" aria-hidden="true">${CHECK}</div>`:LOGO}</div>
+    <h1 style="text-align:center">${DISC()?"Daily":"Unhookd is locked"}</h1><p class="muted" style="text-align:center">Enter your 4-digit PIN</p>
+    <div class="pindots" id="pindots" aria-label="${pinIn.length} of 4 digits entered">${[0,1,2,3].map(i=>`<i class="${pinIn.length>i?"on":""}"></i>`).join("")}</div>
+    <div class="keypad">${keys.map(k=>k==="bio"?`<button data-act="pin-bio" aria-label="Use fingerprint">${FINGER}</button>`:k==="del"?`<button data-act="pin-del" aria-label="Delete">⌫</button>`:`<button class="num" data-act="pin:${k}">${k}</button>`).join("")}</div>
+    <button class="ghost" data-act="pin-forgot">Forgot PIN?</button></div>`;
+}
+const FINGER='<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 11v3a8 8 0 0 0 1.5 4.7"/><path d="M8.5 9.5A4 4 0 0 1 16 11v2.5a11 11 0 0 0 .8 4"/><path d="M5.5 8a7.5 7.5 0 0 1 13 3v2"/><path d="M8.6 14a12 12 0 0 0 1.6 5.6"/><path d="M9 11.5a3 3 0 0 1 0-.5"/></svg>';
+function pinKey(k){
+  if(pinIn.length>=4)return;pinIn+=k;buzz(8);sfx("tick");render();
+  if(pinIn.length===4)setTimeout(()=>{if(pinIn===S.lock.pin){unlocked=true;pinIn="";buzz(20);render();dailyOpen()}
+    else{pinIn="";buzz([30,40,30]);render();const d=document.getElementById("pindots");if(d){d.classList.add("shake")}toast("That PIN didn't match")}},180);
+}
+document.addEventListener("visibilitychange",()=>{if(document.hidden){hiddenAt=Date.now()}else if(S.lock.pin&&hiddenAt&&Date.now()-hiddenAt>30000){unlocked=false;pinIn="";closeSheet();render()}});
+function privacyCard(){
+  const k=S.lock;
+  return `<div class="card" id="privacy"><h2>Privacy and lock</h2><p class="muted small">In this Unhookd prototype everything stays on this device. No account, no server, nothing shared unless you send it. No family alerts, no public rankings. Missing a day is never treated as a relapse.</p>
+    <div class="toggle"><div class="grow"><b>PIN lock</b><p class="small muted">${k.pin?"On. Asks for your PIN when you open the app or come back after 30 seconds.":"Ask for a 4-digit PIN when the app opens."}</p></div></div>
+    ${k.pin?`<div class="row"><button data-act="pin-change">Change PIN</button><button class="ghost small" data-act="pin-off">Turn off</button><button class="ghost small" data-act="pin-bio">${FINGER} Fingerprint</button></div>`:
+    `<form class="form" data-form="pin"><div class="row"><input class="grow" id="f-pin" name="pin" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="4 digits" aria-label="New PIN" autocomplete="off"><input class="grow" id="f-pin2" name="pin2" type="password" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="Repeat" aria-label="Repeat PIN" autocomplete="off"></div><button class="primary" type="submit">Set PIN</button></form>`}
+    <div class="toggle"><div class="grow"><b>Discreet mode</b><p class="small muted">Shows the app as "Daily", hides substance names on your screens (they become Goal 1, Goal 2) and keeps reminders plain.</p></div><div class="seg" style="min-width:120px"><button class="${k.discreet?"on":""}" data-act="disc:1">On</button><button class="${k.discreet?"":"on"}" data-act="disc:0">Off</button></div></div>
+    <p class="small muted">${S.consent?"You agreed to the privacy terms on "+esc(fmtDate(parseYmd(S.consent)))+".":"Consent not recorded yet."} You can withdraw any time by deleting your data below.</p></div>`;
+}
+
+/* if-then plans */
+function plansBlock(){
+  return `<div class="card" id="plans"><div class="row between"><h2>My if-then plans</h2><button class="ghost small" data-act="add-plan">${ui.addPlan?"Close":"Add"}</button></div>
+    <p class="small muted">Decide now, so a craving doesn't have to. Your plans pop up when you log a strong craving or tap Get support.</p>
+    ${ui.addPlan||!S.plans.length?`<form class="form" data-form="plan"><label>If…<input id="f-pif" name="if" required maxlength="80" placeholder="I'm stressed after work"></label><label>then I will…<input id="f-pthen" name="then" required maxlength="80" placeholder="walk round the block before going home"></label><button class="primary" type="submit">Save plan</button></form>`:""}
+    ${S.plans.map(p=>`<div class="plan"><p><b>${L("If")}</b> ${esc(p.if)}, <b>${L("then")}</b> ${esc(p.then)}.</p><button class="ghost small" data-act="plan-del:${p.id}">Remove</button></div>`).join("")}</div>`;
+}
+function plansInline(){
+  if(!S.plans.length)return `<button class="wide" data-act="go-plans">Make an if-then plan for next time</button>`;
+  return `<div class="card" style="background:var(--sun-soft,var(--chip))"><div class="eyebrow">${L("Your plan")}</div>${S.plans.slice(0,3).map(p=>`<p><b>${L("If")}</b> ${esc(p.if)}, <b>${L("then")}</b> ${esc(p.then)}.</p>`).join("")}</div>`;
+}
+
+/* clinic setup code */
+function encCode(o){return "UH1-"+btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/,"").replace(/\+/g,"-").replace(/\//g,"_")}
+function decCode(s){const m=String(s||"").replace(/\s+/g,"").match(/UH1-([A-Za-z0-9_-]+)/);if(!m)return null;
+  try{let b=m[1].replace(/-/g,"+").replace(/_/g,"/");while(b.length%4)b+="=";const o=JSON.parse(decodeURIComponent(escape(atob(b))));if(!o||typeof o!=="object")return null;
+    const c=k=>String(o[k]||"").slice(0,120);const r={name:c("n"),doctor:c("d"),phone:c("p"),cc:c("c")||"India|91",booking:/^https:\/\//.test(c("b"))?c("b"):"",address:c("a")};return r.name||r.phone?r:null}catch(e){return null}}
+const SAMPLE_CODE=()=>encCode({n:"Sunrise Clinic (sample)",d:"Dr. Meera Rao (sample)",p:"80 0000 0000",c:"India|91",b:"",a:"Hosur Road, Bengaluru"});
+let codeFound=null;
+function codeSheet(val){
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cd-h" data-stop="1"><div class="grab"></div><h2 id="cd-h">Set up with a clinic code</h2>
+    <p class="muted small">Your clinic can give you a QR code or a short code starting with UH1. It fills in their name, doctor, phone and booking link for you.</p>
+    <button class="sun wide" data-act="code-scan">Scan QR code</button>
+    <label class="lbl">Or type or paste the code<textarea id="f-code" rows="3" placeholder="UH1-…" style="width:100%">${esc(val||"")}</textarea></label>
+    <button class="primary wide" data-act="code-apply">Apply code</button><button class="ghost small" data-act="code-sample">Try a sample code</button>
+    <button class="ghost" data-act="close-sheet">Cancel</button></div>`);
+}
+function codeConfirm(c){codeFound=c;
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cc-h" data-stop="1"><div class="grab"></div><div class="eyebrow">Code found</div><h2 id="cc-h">${esc(c.name||"Your clinic")}</h2>
+    <table class="sum">${[["Doctor",c.doctor],["Phone",c.phone?dispPhone(c):""],["Booking",c.booking],["Address",c.address]].filter(r=>r[1]).map(r=>`<tr><th>${r[0]}</th><td>${esc(r[1])}</td></tr>`).join("")}</table>
+    <p class="small muted">Only these details are saved, on this phone. Your clinic doesn't see anything you log.</p>
+    <button class="primary wide" data-act="code-ok">Add this clinic</button><button class="ghost" data-act="code-sheet">Back</button></div>`);
+}
+function makeCodeSheet(){
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="mk-h" data-stop="1"><div class="grab"></div><div class="eyebrow">For clinics</div><h2 id="mk-h">Make a setup code for your patients</h2>
+    <p class="muted small">Print the QR at the front desk or on the prescription. Patients scan it once and your details are filled in. Nothing about the patient comes back to you.</p>
+    <form class="form" data-form="mkcode"><label>Clinic name<input id="k-name" name="name" required placeholder="e.g. City De-addiction Centre"></label><label>Doctor<input id="k-doc" name="doctor" placeholder="Optional"></label>
+    <div style="display:flex;flex-direction:column;gap:6px"><span class="lbl">Clinic phone</span>${phoneField("k-cc","k-phone",S.clinic.cc,"")}</div>
+    <label>Booking link<input id="k-link" name="booking" type="url" placeholder="https://…"></label><label>Address<input id="k-addr" name="address" placeholder="Area, city"></label>
+    <button class="primary" type="submit">Make code</button></form><button class="ghost" data-act="close-sheet">Cancel</button></div>`);
+}
+let lastCode="";
+function showCode(code,name){lastCode=code;
+  sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sc-h" data-stop="1"><div class="grab"></div><div class="eyebrow">Setup code ready</div><h2 id="sc-h">${esc(name)}</h2>
+    <div class="qrbox" id="qrbox"></div><p class="copyable small" style="word-break:break-all">${esc(code)}</p>
+    <button class="primary wide" data-act="code-copy">Copy code</button><p class="small muted">Patients can scan the QR in the app version, or paste this code in Care.</p>
+    <button class="ghost" data-act="close-sheet">Done</button></div>`);
+  const b=document.getElementById("qrbox");
+  try{if(window.QRCode){new QRCode(b,{text:code,width:184,height:184,colorDark:"#1d1640",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.L})}else b.innerHTML=`<p class="small muted">The QR image needs an internet connection. The code below works on its own.</p>`}catch(e){b.innerHTML=`<p class="small muted">Couldn't draw the QR here. The code below works on its own.</p>`}
+}
+
+/* gentle escalation */
+function escalation(){
+  const strong=(S.triggers||[]).filter(x=>x.d>=addDays(-6)&&x.c==="Strong").length,slips=S.slips.filter(x=>x.date>=addDays(-13)).length;
+  if(S.heavy&&S.heavy>=addDays(-2))return {k:"heavy",msg:"You said you've been drinking heavily. Stopping suddenly after that can be risky, so please call your clinic today before you stop on your own."};
+  if(slips>=2)return {k:"slips",msg:`That's ${slips} slips in two weeks. Nothing is lost, and this is a good moment to let your clinic help with the plan.`};
+  if(strong>=3)return {k:"strong",msg:`You've logged ${strong} strong cravings this week. That's a lot to carry alone, and your clinic can help.`};
+  return null;
+}
+function escBody(e){const c=S.clinic;
+  return `<div class="eyebrow" style="color:inherit">${L("Finn noticed something")}</div><h3 style="color:inherit">${L("Let's call your clinic today")}</h3><p>${esc(e.msg)}</p>
+    ${c.phone?`<p class="small"><b>${esc(c.name||"My clinic")}:</b> <span class="copyable">${esc(dispPhone(c))}</span></p><div class="row"><a class="btn primary" href="tel:${telFull(c)}">${L("Call my clinic")}</a><button data-act="doc">Show my summary</button></div>`:
+    `<div class="row"><button class="primary" data-act="go-care">Add my clinic</button><button data-act="doc">Show my summary</button></div>`}
+    <p class="small">If you feel unsafe right now, use the emergency number in Get support.</p>`;
+}
+function escCard(){const e=escalation();if(!e||S.escHide===today())return "";
+  return `<div class="card esc">${escBody(e)}<button class="ghost small" style="color:inherit;align-self:flex-start" data-act="esc-hide">${L("Not today")}</button></div>`}
+function escSheet(e,preview){sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="es-h" data-stop="1"><div class="grab"></div>${preview?`<div class="tag">Preview</div>`:""}
+  <div class="card esc" id="es-h">${escBody(e)}</div><button class="ghost" data-act="close-sheet">${L("Close")}</button></div>`)}
+function safetyCheckCard(){const e=escalation();
+  return `<div class="card"><h2>Safety check</h2><p class="small muted">Unhookd looks out for three warning signs: 3 or more strong cravings in a week, 2 slips in two weeks, or heavy drinking. If one shows up, it asks you, kindly but clearly, to call your clinic that day. It never contacts anyone for you.</p>
+    <p><b>Right now:</b> ${e?esc(e.msg):"all clear."}</p><button style="align-self:flex-start" data-act="esc-preview">Preview the nudge</button></div>`}
+
+/* language card */
+function langCard(){return `<div class="card"><h2>${L("Language")} · Language</h2><div class="seg"><button class="${S.lang==="hi"?"":"on"}" data-act="lang:en">English</button><button class="${S.lang==="hi"?"on":""}" data-act="lang:hi">हिन्दी</button></div>
+  <p class="small muted">Hindi covers the tabs, Today, the check-in and the support screens in this prototype. Tamil, Bengali, Marathi and more are planned, each checked by a native speaker and a clinician. Stories and support screens can be read aloud.</p></div>`}
+
+/* ---------- actions ---------- */
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-act]");if(!el)return;
+  if(el.classList.contains("scrim")&&e.target.closest("[data-stop]"))return;
+  const parts=el.dataset.act.split(":"),a=parts[0],p=parts[1],q=parts[2];
+  const tr=id=>S.trackers.find(t=>t.id===id);
+  switch(a){
+    case "tab":buzz(8);go(p);return;
+    case "pin":pinKey(p);return;
+    case "pin-del":pinIn=pinIn.slice(0,-1);buzz(6);render();return;
+    case "pin-bio":toast("Fingerprint and face unlock come with the app-store version");buzz(10);return;
+    case "pin-forgot":sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pf-h" data-stop="1"><div class="grab"></div><h2 id="pf-h">Forgot your PIN?</h2><p class="muted">In the app-store version you'll unlock with your fingerprint or face, or reset the PIN through your phone's own lock. In this prototype you can remove the PIN. Your data stays.</p><button class="primary wide" data-act="pin-reset">Remove PIN (prototype)</button><button class="ghost" data-act="close-sheet">Cancel</button></div>`);return;
+    case "pin-reset":S.lock.pin="";unlocked=true;pinIn="";save();closeSheet();render();toast("PIN removed");dailyOpen();return;
+    case "pin-off":S.lock.pin="";save();render();toast("PIN lock off");return;
+    case "pin-change":S.lock.pin="";save();render();setTimeout(()=>{const f=document.getElementById("f-pin");if(f)f.focus()},50);toast("Enter a new PIN");return;
+    case "disc":S.lock.discreet=p==="1";buzz(8);save();render();toast(S.lock.discreet?"Discreet mode on":"Discreet mode off");return;
+    case "lang":S.lang=p==="hi"?"hi":"en";buzz(8);sfx("tick");save();render();toast(S.lang==="hi"?"हिन्दी चुनी गई":"English selected");return;
+    case "say":{let txt="";if(story){const st=STORIES.find(s=>s.id===story.id),sl=st.slides[story.i];txt=sl.quiz?sl.q:(sl.h+". "+sl.t)}
+      else{const sh=el.closest(".sheet,.story");if(sh)txt=[...sh.querySelectorAll("h1,h2,h3,p")].map(n=>n.innerText.trim()).filter(Boolean).join(". ")}
+      speak(txt||"Nothing to read here");return}
+    case "trusted-edit":ui.editTrusted=true;render();return;
+    case "trusted-cancel":ui.editTrusted=false;render();return;
+    case "trusted-del":S.trusted={name:"",cc:S.clinic.cc,phone:"",last:""};save();render();toast("Trusted person removed");return;
+    case "hello":helloK="";helloSheet();buzz(8);return;
+    case "hello-pick":helloK=p;buzz(8);sfx("tick");helloSheet();return;
+    case "hello-sent":helloDone();setTimeout(()=>{closeSheet();render();celebrate(null,"Hello sent")},300);return;
+    case "hello-copy":{const m=helloMsg(helloK);try{navigator.clipboard.writeText(m).then(()=>{toast("Message copied. Paste it in any chat app");helloDone();render()},()=>toast("Select the message to copy"))}catch(err){toast("Select the message to copy")}return}
+    case "add-plan":ui.addPlan=!ui.addPlan;render();return;
+    case "plan-del":S.plans=S.plans.filter(x=>x.id!==p);save();render();return;
+    case "go-plans":go("care");ui.addPlan=true;render();setTimeout(()=>{const c=document.getElementById("plans");if(c)c.scrollIntoView({behavior:reduced()?"auto":"smooth"})},60);return;
+    case "code-sheet":codeSheet();return;
+    case "code-sample":codeSheet(SAMPLE_CODE());return;
+    case "code-scan":sheet(`<div class="sheet" role="dialog" aria-modal="true" aria-labelledby="qs-h" data-stop="1"><div class="grab"></div><h2 id="qs-h">Scan your clinic's QR</h2><div class="qrbox" style="min-height:180px;align-items:center;background:var(--chip)"><svg viewBox="0 0 100 100" width="140" height="140" aria-hidden="true" fill="none" stroke="var(--pri)" stroke-width="5" stroke-linecap="round"><path d="M10 30V10h20M70 10h20v20M90 70v20H70M30 90H10V70"/><path d="M20 50h60" stroke-dasharray="6 6"/></svg></div><p class="muted">The camera scanner comes with the app-store version. For now, type or paste the code printed under the QR.</p><button class="primary wide" data-act="code-sheet">Type the code instead</button><button class="ghost" data-act="close-sheet">Cancel</button></div>`);return;
+    case "code-apply":{const v=(document.getElementById("f-code")||{}).value,c=decCode(v);if(!c){toast("That code doesn't look right. Check it and try again");buzz([10,40,10]);return}codeConfirm(c);return}
+    case "code-ok":{const c=codeFound;if(!c)return;if(!S.onboarded){ob.clinic=c;closeSheet();render();toast("Clinic added. Finish setup to save it");return}
+      S.clinic=Object.assign({},S.clinic,c);ui.editClinic=false;save();closeSheet();render();celebrate(null,"Clinic added");return}
+    case "code-make":makeCodeSheet();return;
+    case "code-copy":try{navigator.clipboard.writeText(lastCode).then(()=>toast("Code copied"),()=>toast("Select the code to copy"))}catch(err){toast("Select the code to copy")}return;
+    case "esc-hide":S.escHide=today();save();render();toast("Okay. Your clinic's number is always in Get support");return;
+    case "esc-preview":escSheet(escalation()||{msg:"Example: You've logged 3 strong cravings this week. That's a lot to carry alone, and your clinic can help."},!escalation());return;
+    case "heavy":S.heavy=S.heavy===today()?"":today();buzz(10);save();drawSlip();return;
+    case "no-booking":ui.editClinic=true;render();toast("Add your clinic's booking link to use this");setTimeout(()=>{const f=document.getElementById("f-clink");if(f)f.focus()},60);return;
+    case "pro-toggle":S.pro=!S.pro;save();render();if(S.pro){rain();sfx("win");buzz([30,40,30]);toast("Pro unlocked for this prototype")}return;
+    case "pro-on":S.pro=true;save();closeSheet();render();rain();sfx("win");buzz([30,40,30]);toast("Pro unlocked for this prototype");return;
+    case "pro-sheet":proSheet();buzz(8);return;
+    case "diff":S.difficulty=p;buzz(8);sfx("tick");save();render();return;
+    case "ci-int":ciSel.i=+p;buzz(8);checkinSheet();return;
+    case "ci-help":{const g=ciSel.helped||(ciSel.helped=[]);const k=g.indexOf(p);if(k>=0)g.splice(k,1);else g.push(p);buzz(8);checkinSheet();return}
+    case "copy-report":{const txt=reportText();try{navigator.clipboard.writeText(txt).then(()=>toast("Report copied"),()=>toast("Select the text to copy"))}catch(err){toast("Select the text to copy")}return}
+    case "ripple":{const r=el.getBoundingClientRect(),x=(e.clientX||r.left+r.width/2)-r.left,y=(e.clientY||r.top+r.height/2)-r.top;const s=document.createElement("span");s.className="ripple";s.style.left=x+"px";s.style.top=y+"px";el.appendChild(s);setTimeout(()=>s.remove(),1600);
+      buzz(12);sfx("tick");ripples++;const n=document.getElementById("rip-n");if(n)n.textContent=ripples;if(ripples>=20){ripples=0;setTimeout(()=>finishCalm(el),400)}return}
+    case "allq":ui.allQ=!ui.allQ;buzz(8);render();return;
+    case "deld":S.daily=S.daily.filter(c=>c.id!==p);save();render();return;
+    case "own-start":go("me");ui.confirmReset=true;render();setTimeout(()=>window.scrollTo(0,document.body.scrollHeight),50);return;
+    case "doc":doctorSheet();buzz(8);return;
+    case "pace":if(breath.on)stopBreath();S.pace=p==="short"?"short":"long";save();render();return;
+    case "ground":ground=ground>=GROUND.length-1?0:ground+1;buzz(10);sfx("tick");render();return;
+    case "mode":S.mode=isDark()?"light":"dark";buzz(10);sfx("tick");save();render();return;
+    case "mode-set":S.mode=p==="dark"?"dark":"light";save();render();return;
+    case "go-rewards":go("journey");setTimeout(()=>{const r=document.getElementById("rewards");if(r)r.scrollIntoView({behavior:reduced()?"auto":"smooth"})},60);return;
+    case "go-learn":go("learn");return;
+    case "go-journey":case "see-map":go("journey");return;
+    case "story":openStory(p);return;
+    case "st-next":storyNext();return;
+    case "st-prev":if(story&&story.i>0){story.i--;drawStory()}return;
+    case "st-close":story=null;closeSheet();return;
+    case "st-ans":storyAnswer(p,el);return;
+    case "st-done":storyNext();return;
+    case "go-care":go("care");return;
+    case "go-calm":go("calm");return;
+    case "ob-next":if(ob.step===2&&!Object.keys(ob.picks).length){toast("Pick at least one to continue");buzz([10,40,10]);return}buzz(10);ob.step++;render();return;
+    case "ob-pick":if(ob.picks[p])delete ob.picks[p];else ob.picks[p]=(p==="Tobacco"?"reduce":"quit");buzz(10);sfx("tick");render();return;
+    case "ob-goal":ob.picks[p]=q;render();return;
+    case "ob-finish":{const k=document.getElementById("o-consent");if(k&&!k.checked){needConsent();return}const s=document.getElementById("o-cc");finishOnboard("","",s?s.value:"");return}
+    case "load-sample":{const keep={sound:S.sound,haptic:S.haptic};S=sample();Object.assign(S,keep);ui.confirmReset=false;tab="today";save();render();dailyOpen();return}
+    case "reset-ask":ui.confirmReset=true;render();return;
+    case "reset-no":ui.confirmReset=false;render();return;
+    case "reset-yes":S=blank();ui.confirmReset=false;save();closeSheet();render();return;
+    case "close-sheet":closeSheet();return;
+    case "welcome-go":{const b=el.getBoundingClientRect();closeSheet();burst(b.left+b.width/2,b.top,40,10);buzz(25);sfx("coin");return}
+    case "q":{
+      const quest=quests().find(x=>x.id===p);if(!quest)return;const id=quest.id;
+      if(qd()[id]){undoQuest(id);if(id.startsWith("med-")){const m=S.meds.find(x=>"med-"+x.id===id);if(m)delete m.log[today()]}buzz(8);save();render();return}
+      if(quest.act==="checkin"){ciSel={};checkinSheet();return}
+      if(quest.act==="hello"){helloK="";helloSheet();return}
+      if(quest.act==="go-plans"){go("care");ui.addPlan=true;render();setTimeout(()=>{const c=document.getElementById("plans");if(c)c.scrollIntoView()},60);return}
+      if(quest.act==="go-care"){go("care");return}
+      if(quest.act==="go-calm"){go("calm");return}
+      if(quest.act==="go-learn"){go("learn");return}
+      if(quest.act==="arrive"){doArrive(el);return}
+      if(quest.act==="free"){if(new Date().getHours()<17){toast("Tick this in the evening, once the day's nearly done");buzz([10,40,10]);return}freeSheet(quest);return}
+      if(id.startsWith("med-")){const m=S.meds.find(x=>"med-"+x.id===id);if(m)m.log[today()]="taken"}
+      completeQuest(id,el);save();render();bumpBuddy();return}
+    case "free-yes":{closeSheet();completeQuest(p,document.querySelector(`[data-act="q:${p}"]`));save();render();bumpBuddy();return}
+    case "free-no":openSlip(p);return;
+    case "delq":S.custom[today()]=(S.custom[today()]||[]).filter(c=>c.id!==p);save();render();return;
+    case "slip":openSlip(p);return;
+    case "slip-sel":slipSel=p;drawSlip();return;
+    case "slip-restart":{const t=tr(p);const st=steps();t.start=today();S.slips.push({id:p,date:today(),step:st});sticker("back");save();render();relapseSheet();return}
+    case "inc":{const t=tr(p);t.log[today()]=(t.log[today()]||0)+1;buzz(12);sfx("tick");save();render();return}
+    case "dec":{const t=tr(p);t.log[today()]=Math.max(0,(t.log[today()]||0)-1);buzz(8);save();render();return}
+    case "ci":ciSel[p]=q;buzz(10);sfx("tick");checkinSheet();return;
+    case "ci-tag":{const g=ciSel.tags||(ciSel.tags=[]);const i=g.indexOf(p);if(i>=0)g.splice(i,1);else g.push(p);buzz(8);checkinSheet();return}
+    case "ci-sub":ciSel.sub=p;buzz(8);checkinSheet();return;
+    case "setup":setupSheet(p);return;
+    case "health":healthSheet(p);buzz(8);return;
+    case "ci-save":if(!ciSel.mood||!ciSel.craving){toast(!ciSel.mood?"Pick how you feel first":"Pick a craving level first");buzz([10,40,10]);return}{if(ciSel.craving&&ciSel.craving!=="None")S.triggers.push({d:today(),h:new Date().getHours(),c:ciSel.craving,tags:ciSel.tags||[],sub:ciSel.sub||(S.trackers.length===1?S.trackers[0].sub:""),i:ciSel.i||0,helped:ciSel.helped||[]});S.checkins[today()]={mood:ciSel.mood,craving:ciSel.craving};const strong=ciSel.craving==="Strong";closeSheet();
+      sticker("checkin");completeQuest("checkin",document.querySelector('[data-act="q:checkin"]'));save();render();bumpBuddy();if(strong)setTimeout(strongSheet,800);return}
+    case "arrive":doArrive(el);return;
+    case "edit-clinic":ui.editClinic=true;render();return;
+    case "cancel-clinic":ui.editClinic=false;render();return;
+    case "edit-appt":ui.editAppt=true;render();return;
+    case "cancel-appt":ui.editAppt=false;render();return;
+    case "add-med":ui.addMed=!ui.addMed;render();return;
+    case "med-del":S.meds=S.meds.filter(x=>x.id!==p);save();render();return;
+    case "add-tracker":ui.addTracker=!ui.addTracker;render();return;
+    case "del-tracker":S.trackers=S.trackers.filter(x=>x.id!==p);save();render();return;
+    case "set":S[p]=q==="1";if(p==="haptic"&&S.haptic)buzz(30);if(p==="sound"&&S.sound)sfx("pop");save();render();return;
+    case "copy":{const txt=dispPhone(S.clinic);try{navigator.clipboard.writeText(txt).then(()=>toast("Copied"),()=>toast("Select the number to copy"))}catch(err){toast("Select the number to copy")}return}
+    case "acc":case "theme":{
+      const cat=a==="acc"?ACCS:THEMES,item=cat[p];if(!item)return;
+      if(!S.owned[p]){if(S.seeds<item.price){toast("You need "+(item.price-S.seeds)+" more seeds. Quests earn them");buzz([10,40,10]);return}S.seeds-=item.price;S.owned[p]=true;S.equip[a]=p;save();render();
+        const btn=document.querySelector(`[data-act="${a}:${p}"]`);celebrate(btn,"Unlocked!");sfx("coin");return}
+      buzz(10);sfx("tick");S.equip[a]=p;save();render();return}
+    case "bub":{const i=+p;if(!bubbles[i])return;el.classList.add("popped");buzz(18);sfx("pop");S.stats.pops++;
+      const r=el.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2,8,4);bubbles[i]=null;
+      const left=bubbles.filter(Boolean).length,lb=document.getElementById("bub-left");if(lb)lb.textContent=left+" left";
+      if(S.stats.pops>=100)sticker("popper");
+      if(!left)setTimeout(()=>{bubbles=newBubbles();finishCalm(document.querySelector(".bubbles"))},350);else save();return}
+    case "breath":if(breath.on){stopBreath();render()}else{breath.on=true;breath.t=0;render();breathTick();breath.timer=setInterval(breathTick,1000)}return;
+  }
+});
+document.addEventListener("submit",e=>{
+  const f=e.target.closest("form[data-form]");if(!f)return;e.preventDefault();
+  const v=Object.fromEntries(new FormData(f).entries());
+  switch(f.dataset.form){
+    case "ob":if(!v.consent){needConsent();return}finishOnboard((v.phone||"").trim(),(v.booking||"").trim(),v.cc);return;
+    case "trusted":S.trusted={name:(v.name||"").trim(),cc:v.cc||"India|91",phone:(v.phone||"").trim(),last:S.trusted.last||""};ui.editTrusted=false;save();render();toast(S.trusted.phone?"Saved. A weekly hello quest will appear on Today":"Saved");return;
+    case "pin":{const a1=(v.pin||"").trim(),a2=(v.pin2||"").trim();if(!/^\d{4}$/.test(a1)){toast("Use exactly 4 digits");return}if(a1!==a2){toast("The two PINs don't match");return}S.lock.pin=a1;unlocked=true;save();render();toast("PIN lock on");return}
+    case "plan":S.plans.push({id:"p"+Date.now(),if:(v.if||"").trim().replace(/^if\s+/i,""),then:(v.then||"").trim().replace(/^then\s+/i,"")});ui.addPlan=false;
+      if(!qd().plan){qd().plan=true;S.stats.quests++;gain(10,2)}save();render();celebrate(document.getElementById("plans"),"Plan saved");return;
+    case "mkcode":{const c=encCode({n:v.name.trim(),d:(v.doctor||"").trim(),p:(v.phone||"").trim(),c:v.cc||"India|91",b:(v.booking||"").trim(),a:(v.address||"").trim()});showCode(c,v.name.trim());return}
+    case "addq":{const t=(v.t||"").trim();if(!t)return;if(v.daily)S.daily.push({id:"d"+Date.now(),t});else (S.custom[today()]||(S.custom[today()]=[])).push({id:"c"+Date.now(),t});buzz(12);sfx("tick");save();render();return}
+    case "clinic":S.clinic={name:v.name.trim(),doctor:v.doctor.trim(),cc:v.cc||"India|91",phone:v.phone.trim(),booking:v.booking.trim(),address:v.address.trim()};ui.editClinic=false;save();render();toast("Clinic saved");return;
+    case "appt":{const btn=f.querySelector("button[type=submit]");const r=btn.getBoundingClientRect();
+      S.appt={when:v.when,arrived:false};ui.editAppt=false;sticker("booked");
+      if(!qd().book){qd().book=true;S.stats.quests++;gain(10,2)}burst(r.left+r.width/2,r.top+r.height/2,36,9);buzz(25);sfx("pop");floatText(r.left+r.width/2,r.top,"+1 step");save();render();return}
+    case "setup":{const tk=S.trackers.find(x=>x.id===v.id);if(tk){tk.spend=Math.max(0,+v.spend||0);tk.perDay=Math.max(0,+v.per||0)}closeSheet();save();render();toast("Saved");return}
+    case "med":S.meds.push({id:"m"+Date.now(),name:v.name.trim(),time:v.time,log:{}});ui.addMed=false;save();render();toast("Added as a daily quest");return;
+    case "tracker":S.trackers.push({id:"t"+Date.now(),sub:v.sub,goal:v.goal,start:v.start||today(),limit:v.goal==="reduce"?Math.max(0,parseInt(v.limit,10)||0):0,log:{},spend:Math.max(0,+v.spend||0),perDay:Math.max(0,+v.per||0)});ui.addTracker=false;checkMilestones(true);save();render();toast("Tracker added");return;
+  }
+});
+document.addEventListener("change",e=>{if(e.target&&e.target.id==="f-country"){S.clinic.cc=e.target.value;save();render()}});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
+window.addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(["today","journey","care","learn","calm","me"].includes(h)&&h!==tab)go(h)});
+
+checkMilestones(true);save();render();dailyOpen();
+})();
+</script>
+
+</body></html>
